@@ -25,6 +25,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -53,6 +54,9 @@ import br.com.djavanfernando.socialvideodownloader.core.ArquivoAusente
 import br.com.djavanfernando.socialvideodownloader.core.NomeInvalido
 import br.com.djavanfernando.socialvideodownloader.core.NomeJaExiste
 import br.com.djavanfernando.socialvideodownloader.core.Video
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -74,12 +78,31 @@ class VideoViewModel(dependencias: Dependencias, private val videoId: String) : 
         acervo.renomear(videoId, nome)
     }
 
+    /** Progresso da geração da cópia com Marca d'água; `null` quando nada está sendo gerado. */
+    val gerandoCopia = MutableStateFlow<Float?>(null)
+    val falhaAoCompartilhar = MutableStateFlow(false)
+    private var preparo: Job? = null
+
     /** Prepara o arquivo do Compartilhamento e o entrega a [enviar]; Arquivo ausente só atualiza a tela. */
-    fun compartilhar(enviar: (String) -> Unit) = viewModelScope.launch {
-        try {
-            enviar(compartilhamento.preparar(videoId).caminho)
-        } catch (_: ArquivoAusente) {
+    fun compartilhar(enviar: (String) -> Unit) {
+        if (preparo?.isActive == true) return
+        preparo = viewModelScope.launch {
+            try {
+                val arquivo = compartilhamento.preparar(videoId) { gerandoCopia.value = it }
+                enviar(arquivo.caminho)
+            } catch (_: ArquivoAusente) {
+            } catch (erro: CancellationException) {
+                throw erro
+            } catch (_: Exception) {
+                falhaAoCompartilhar.value = true
+            } finally {
+                gerandoCopia.value = null
+            }
         }
+    }
+
+    fun cancelarCompartilhamento() {
+        preparo?.cancel()
     }
 
     fun apagar(apagarArquivo: Boolean, depois: () -> Unit) = viewModelScope.launch {
@@ -96,6 +119,8 @@ fun VideoTela(dependencias: Dependencias, videoId: String, aoVoltar: () -> Unit)
     var renomeando by rememberSaveable { mutableStateOf(false) }
     var apagando by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(videoId) { viewModel.verificarArquivo() }
+    val gerandoCopia by viewModel.gerandoCopia.collectAsStateWithLifecycle()
+    val falhaAoCompartilhar by viewModel.falhaAoCompartilhar.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     Scaffold(
@@ -147,6 +172,28 @@ fun VideoTela(dependencias: Dependencias, videoId: String, aoVoltar: () -> Unit)
                     }
                 },
                 aoDispensar = { renomeando = false },
+            )
+        }
+        gerandoCopia?.let { progresso ->
+            AlertDialog(
+                onDismissRequest = {},
+                title = { Text(stringResource(R.string.marca_dagua_gerando)) },
+                text = { LinearProgressIndicator(progress = { progresso }, modifier = Modifier.fillMaxWidth()) },
+                confirmButton = {},
+                dismissButton = {
+                    TextButton(onClick = viewModel::cancelarCompartilhamento) { Text(stringResource(R.string.cancelar)) }
+                },
+            )
+        }
+        if (falhaAoCompartilhar) {
+            AlertDialog(
+                onDismissRequest = { viewModel.falhaAoCompartilhar.value = false },
+                title = { Text(stringResource(R.string.marca_dagua_falhou)) },
+                confirmButton = {
+                    TextButton(onClick = { viewModel.falhaAoCompartilhar.value = false }) {
+                        Text(stringResource(R.string.confirmar))
+                    }
+                },
             )
         }
         if (apagando) {

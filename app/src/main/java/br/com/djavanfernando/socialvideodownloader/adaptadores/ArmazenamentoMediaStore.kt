@@ -19,7 +19,13 @@ import java.util.UUID
  */
 class ArmazenamentoMediaStore(private val context: Context) : ArmazenamentoDeArquivos {
     private val resolver get() = context.contentResolver
-    private val pastaTemporaria get() = File(context.cacheDir, "downloads").apply { mkdirs() }
+    /** Downloads em andamento e cópias do Compartilhamento; exposta a outros apps só via FileProvider. */
+    private val pastaTemporaria get() = File(context.cacheDir, "temporarios").apply { mkdirs() }
+
+    /** Apaga temporários esquecidos; chamado ao iniciar o processo, quando nada está em andamento. */
+    fun limparTemporarios() {
+        pastaTemporaria.listFiles()?.forEach { it.deleteRecursively() }
+    }
 
     override fun criarTemporario(): ArquivoTemporario =
         ArquivoTemporario(File(pastaTemporaria, "${UUID.randomUUID()}.mp4").absolutePath)

@@ -15,6 +15,7 @@ class Cenario {
     val preferencias = PreferenciasEmMemoria()
     val acervo = Acervo(repositorio, armazenamento)
     val baixador = Baixador(extrator, armazenamento, repositorio, relogio)
-    val compartilhamento = Compartilhamento(repositorio, armazenamento)
+    val processador = ProcessadorFalso(armazenamento)
+    val compartilhamento = Compartilhamento(repositorio, armazenamento, preferencias, processador)
     val fila = FilaDeDownloads(repositorio, baixador, conectividade, preferencias, relogio)
 }

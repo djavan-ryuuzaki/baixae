@@ -5,6 +5,7 @@ import br.com.djavanfernando.socialvideodownloader.adaptadores.ArmazenamentoMedi
 import br.com.djavanfernando.socialvideodownloader.adaptadores.ConectividadeAndroid
 import br.com.djavanfernando.socialvideodownloader.adaptadores.ExtratorYoutubeDl
 import br.com.djavanfernando.socialvideodownloader.adaptadores.PreferenciasAndroid
+import br.com.djavanfernando.socialvideodownloader.adaptadores.ProcessadorAndroid
 import br.com.djavanfernando.socialvideodownloader.core.Acervo
 import br.com.djavanfernando.socialvideodownloader.core.Baixador
 import br.com.djavanfernando.socialvideodownloader.core.Compartilhamento
@@ -29,6 +30,7 @@ class SocialVideoDownloaderApp : Application() {
     override fun onCreate() {
         super.onCreate()
         dependencias = Dependencias(this)
+        dependencias.armazenamento.limparTemporarios()
         Notificacoes.criarCanais(this)
         dependencias.escopo.launch {
             dependencias.acervo.iniciar()
@@ -54,6 +56,7 @@ class Dependencias(app: Application) {
     val extrator = ExtratorYoutubeDl(app)
     val acervo = Acervo(repositorio, armazenamento)
     val baixador = Baixador(extrator, armazenamento, repositorio, relogio)
-    val compartilhamento = Compartilhamento(repositorio, armazenamento)
+    val processador = ProcessadorAndroid(app)
+    val compartilhamento = Compartilhamento(repositorio, armazenamento, preferencias, processador)
     val fila = FilaDeDownloads(repositorio, baixador, conectividade, preferencias, relogio)
 }

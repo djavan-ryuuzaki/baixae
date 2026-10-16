@@ -1,6 +1,7 @@
 package br.com.djavanfernando.socialvideodownloader.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.rememberScrollState
@@ -46,13 +47,19 @@ fun ConfiguracoesTela(dependencias: Dependencias, modifier: Modifier = Modifier)
                 supportingContent = { Text(configuracoes.pastaPadrao) },
             )
             ListItem(
+                modifier = Modifier.toggleable(configuracoes.soWifi) { ligado -> alterar { it.copy(soWifi = ligado) } },
                 headlineContent = { Text(stringResource(R.string.config_so_wifi)) },
                 supportingContent = { Text(stringResource(R.string.config_so_wifi_descricao)) },
                 trailingContent = {
-                    Switch(
-                        checked = configuracoes.soWifi,
-                        onCheckedChange = { ligado -> alterar { it.copy(soWifi = ligado) } },
-                    )
+                    Switch(checked = configuracoes.soWifi, onCheckedChange = null)
+                },
+            )
+            ListItem(
+                modifier = Modifier.toggleable(configuracoes.marcaDagua) { ligado -> alterar { it.copy(marcaDagua = ligado) } },
+                headlineContent = { Text(stringResource(R.string.config_marca_dagua)) },
+                supportingContent = { Text(stringResource(R.string.config_marca_dagua_descricao)) },
+                trailingContent = {
+                    Switch(checked = configuracoes.marcaDagua, onCheckedChange = null)
                 },
             )
         }

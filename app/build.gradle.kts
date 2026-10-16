@@ -71,6 +71,10 @@ dependencies {
     implementation(libs.youtubedl.library)
     implementation(libs.youtubedl.ffmpeg)
 
+    implementation(libs.media3.transformer)
+    implementation(libs.media3.effect)
+    implementation(libs.media3.common)
+
     testImplementation(libs.junit)
     testImplementation(kotlin("test-junit"))
 }
