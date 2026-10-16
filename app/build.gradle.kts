@@ -1,10 +1,20 @@
+import com.android.build.api.variant.FilterConfiguration
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
 }
+
+/** Assinatura de release: lida de `keystore.properties` (fora do git); sem ele, o APK de release sai sem assinatura. */
+val assinatura = rootProject.file("keystore.properties").takeIf { it.exists() }?.let { arquivo ->
+    Properties().apply { arquivo.inputStream().use(::load) }
+}
+
+/** Uma APK por ABI; o versionCode de cada uma é `versionCode * 10 + índice`, para a de 64 bits vencer a de 32. */
+val abis = listOf("armeabi-v7a", "arm64-v8a", "x86_64")
 
 android {
     namespace = "br.com.djavanfernando.socialvideodownloader"
@@ -21,9 +31,32 @@ android {
         buildConfigField("String", "REPOSITORIO_GITHUB", "\"$repositorioGithub\"")
     }
 
+    signingConfigs {
+        if (assinatura != null) {
+            create("release") {
+                storeFile = rootProject.file(assinatura.getProperty("storeFile"))
+                storePassword = assinatura.getProperty("storePassword")
+                keyAlias = assinatura.getProperty("keyAlias")
+                keyPassword = assinatura.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.findByName("release")
+        }
+    }
+
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include(*abis.toTypedArray())
+            isUniversalApk = false
         }
     }
 
@@ -40,6 +73,15 @@ android {
     packaging {
         jniLibs {
             useLegacyPackaging = true
+        }
+    }
+}
+
+androidComponents {
+    onVariants { variante ->
+        variante.outputs.forEach { saida ->
+            val abi = saida.filters.firstOrNull { it.filterType == FilterConfiguration.FilterType.ABI }?.identifier
+            if (abi != null) saida.versionCode.set(saida.versionCode.get() * 10 + abis.indexOf(abi) + 1)
         }
     }
 }

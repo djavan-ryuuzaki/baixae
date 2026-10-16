@@ -14,7 +14,7 @@ import kotlinx.coroutines.CompletableDeferred
 class ExtratorFalso(private val armazenamento: ArmazenamentoFalso) : Extrator {
     private val posts = mutableMapOf<String, Post>()
     private val travas = mutableMapOf<String, CompletableDeferred<Unit>>()
-    private val falhas = mutableMapOf<String, FalhaDoExtrator>()
+    private val falhas = mutableMapOf<String, Throwable>()
     val downloads = mutableListOf<Pair<String, Int>>()
     val limitesPedidos = mutableListOf<LimiteDeQualidade>()
     var versao = "2026.01.01"
@@ -35,7 +35,7 @@ class ExtratorFalso(private val armazenamento: ArmazenamentoFalso) : Extrator {
     }
 
     /** O próximo download de [link] falha com [falha]; a falha é consumida. */
-    fun falhar(link: String, falha: FalhaDoExtrator) {
+    fun falhar(link: String, falha: Throwable) {
         falhas[link] = falha
     }
 

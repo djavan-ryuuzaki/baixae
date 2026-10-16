@@ -179,6 +179,19 @@ class FilaDeDownloadsTest {
     }
 
     @Test
+    fun `erro grave do Extrator marca o Download como falho em vez de deixa-lo em andamento`() = runTest {
+        extrator.cadastrar(link(1), umPost())
+        extrator.falhar(link(1), ExceptionInInitializerError("biblioteca nativa quebrada"))
+        fila.enfileirar(link(1))
+
+        runCatching { fila.processar() }
+
+        val item = cenario.repositorio.itensDaFila().single()
+        assertEquals(EstadoNaFila.FALHOU, item.estado)
+        assertEquals(TipoDeFalha.OUTRO, item.falha)
+    }
+
+    @Test
     fun `Downloads interrompidos pelo fim do processo voltam a ficar pendentes`() = runTest {
         extrator.cadastrar(link(1), umPost())
         val item = fila.enfileirar(link(1))

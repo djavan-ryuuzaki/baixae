@@ -173,7 +173,8 @@ class FilaDeDownloads(
             } else {
                 item.copy(estado = EstadoNaFila.FALHOU, falha = falha.tipo)
             }
-        } catch (_: Exception) {
+        } catch (_: Throwable) {
+            // Inclui Errors (ex.: falha ao carregar o Extrator): o item não pode ficar "em andamento" para sempre.
             item = item.copy(estado = EstadoNaFila.FALHOU, falha = TipoDeFalha.OUTRO)
         } finally {
             withContext(NonCancellable) {
