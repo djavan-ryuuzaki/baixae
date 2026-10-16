@@ -49,4 +49,6 @@
     </plurals>
     <string name="config_so_wifi">Baixar só no Wi-Fi</string>
     <string name="config_so_wifi_descricao">Downloads esperam até haver uma rede Wi-Fi.</string>
+    <string name="compartilhar_rotulo">Baixar vídeo</string>
+    <string name="compartilhar_recusado">Link não suportado. Plataformas suportadas: %1$s</string>
 </resources>

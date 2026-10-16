@@ -4,10 +4,14 @@
 
 **Blocked by:** 04
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Compartilhar um Post do Instagram/YouTube/X/Bluesky/Facebook mostra o app como opção
-- [ ] Escolher o app adiciona o Download à fila e mostra "Adicionado à fila" sem abrir a interface completa
-- [ ] O usuário permanece no app de origem
-- [ ] Texto compartilhado que contém um Link no meio de outras palavras é aceito (Link extraído)
-- [ ] Link não suportado compartilhado mostra aviso de recusa, sem enfileirar
+- [x] Compartilhar um Post do Instagram/YouTube/X/Bluesky/Facebook mostra o app como opção
+- [x] Escolher o app adiciona o Download à fila e mostra "Adicionado à fila" sem abrir a interface completa
+- [x] O usuário permanece no app de origem
+- [x] Texto compartilhado que contém um Link no meio de outras palavras é aceito (Link extraído)
+- [x] Link não suportado compartilhado mostra aviso de recusa, sem enfileirar
+
+## Comments
+
+- `CompartilharActivity` transparente (sem interface) recebe `ACTION_SEND text/plain`, extrai o Link com `Plataforma.extrairLink`, enfileira na Pasta de destino padrão e mostra um Toast. Verificado no emulador simulando o compartilhamento a partir do Chrome (o Chrome continuou em primeiro plano) e com um Link do TikTok (recusado, nada enfileirado). O compartilhamento real a partir dos apps de cada Plataforma não foi testado.
