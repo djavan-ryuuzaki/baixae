@@ -4,6 +4,7 @@ import br.com.djavanfernando.socialvideodownloader.core.Acervo
 import br.com.djavanfernando.socialvideodownloader.core.Baixador
 import br.com.djavanfernando.socialvideodownloader.core.Compartilhamento
 import br.com.djavanfernando.socialvideodownloader.core.FilaDeDownloads
+import br.com.djavanfernando.socialvideodownloader.core.VersaoSemSom
 
 /** Núcleo montado com todos os fakes, para testes que atravessam vários serviços. */
 class Cenario {
@@ -17,5 +18,6 @@ class Cenario {
     val baixador = Baixador(extrator, armazenamento, repositorio, relogio)
     val processador = ProcessadorFalso(armazenamento)
     val compartilhamento = Compartilhamento(repositorio, armazenamento, preferencias, processador)
+    val versaoSemSom = VersaoSemSom(repositorio, armazenamento, processador, relogio)
     val fila = FilaDeDownloads(repositorio, baixador, conectividade, preferencias, relogio)
 }

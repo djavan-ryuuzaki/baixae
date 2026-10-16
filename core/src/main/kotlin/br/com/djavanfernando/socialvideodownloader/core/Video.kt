@@ -18,6 +18,8 @@ data class Video(
     val bibliotecaId: String,
     /** O arquivo foi apagado ou movido fora do app. */
     val arquivoAusente: Boolean = false,
+    /** Vídeo de onde este foi derivado (ex.: Versão sem som). */
+    val origemId: String? = null,
 ) {
     val nomeDoArquivo: String get() = "$nome.$EXTENSAO"
 

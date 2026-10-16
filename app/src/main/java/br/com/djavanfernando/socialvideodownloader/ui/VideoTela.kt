@@ -1,5 +1,6 @@
 package br.com.djavanfernando.socialvideodownloader.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.automirrored.filled.VolumeOff
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PlayArrow
@@ -65,6 +67,7 @@ import kotlinx.coroutines.launch
 class VideoViewModel(dependencias: Dependencias, private val videoId: String) : ViewModel() {
     private val acervo = dependencias.acervo
     private val compartilhamento = dependencias.compartilhamento
+    private val versaoSemSom = dependencias.versaoSemSom
 
     val video = dependencias.repositorio.observarVideos()
         .map { lista -> lista.firstOrNull { it.id == videoId } }
@@ -101,6 +104,27 @@ class VideoViewModel(dependencias: Dependencias, private val videoId: String) : 
         }
     }
 
+    /** `true` enquanto a Versão sem som é gerada. */
+    val criandoSemSom = MutableStateFlow(false)
+
+    fun criarVersaoSemSom(aoTerminar: (Boolean) -> Unit) {
+        if (criandoSemSom.value) return
+        criandoSemSom.value = true
+        viewModelScope.launch {
+            val deuCerto = try {
+                versaoSemSom.criar(videoId)
+                true
+            } catch (erro: CancellationException) {
+                throw erro
+            } catch (_: Exception) {
+                false
+            } finally {
+                criandoSemSom.value = false
+            }
+            aoTerminar(deuCerto)
+        }
+    }
+
     fun cancelarCompartilhamento() {
         preparo?.cancel()
     }
@@ -121,6 +145,9 @@ fun VideoTela(dependencias: Dependencias, videoId: String, aoVoltar: () -> Unit)
     LaunchedEffect(videoId) { viewModel.verificarArquivo() }
     val gerandoCopia by viewModel.gerandoCopia.collectAsStateWithLifecycle()
     val falhaAoCompartilhar by viewModel.falhaAoCompartilhar.collectAsStateWithLifecycle()
+    val criandoSemSom by viewModel.criandoSemSom.collectAsStateWithLifecycle()
+    val semSomCriada = stringResource(R.string.sem_som_criada)
+    val semSomFalhou = stringResource(R.string.sem_som_falhou)
     val context = LocalContext.current
 
     Scaffold(
@@ -150,6 +177,12 @@ fun VideoTela(dependencias: Dependencias, videoId: String, aoVoltar: () -> Unit)
             atual,
             aoRemover = { viewModel.apagar(apagarArquivo = false, depois = aoVoltar) },
             aoCompartilhar = { viewModel.compartilhar(context::compartilhar) },
+            criandoSemSom = criandoSemSom,
+            aoCriarSemSom = {
+                viewModel.criarVersaoSemSom { deuCerto ->
+                    Toast.makeText(context, if (deuCerto) semSomCriada else semSomFalhou, Toast.LENGTH_SHORT).show()
+                }
+            },
             modifier = Modifier.padding(margens),
         )
         if (renomeando) {
@@ -243,6 +276,8 @@ private fun DetalhesDoVideo(
     video: Video,
     aoRemover: () -> Unit,
     aoCompartilhar: () -> Unit,
+    criandoSemSom: Boolean,
+    aoCriarSemSom: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -270,6 +305,10 @@ private fun DetalhesDoVideo(
             OutlinedButton(onClick = aoCompartilhar, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Filled.Share, contentDescription = null)
                 Text(stringResource(R.string.video_compartilhar))
+            }
+            OutlinedButton(onClick = aoCriarSemSom, enabled = !criandoSemSom, modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.AutoMirrored.Filled.VolumeOff, contentDescription = null)
+                Text(stringResource(if (criandoSemSom) R.string.sem_som_criando else R.string.sem_som_criar))
             }
         }
         OutlinedButton(onClick = { context.abrirOriginal(video) }, modifier = Modifier.fillMaxWidth()) {

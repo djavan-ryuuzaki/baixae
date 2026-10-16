@@ -1,6 +1,9 @@
 package br.com.djavanfernando.socialvideodownloader.core
 
 import br.com.djavanfernando.socialvideodownloader.core.portas.ArmazenamentoDeArquivos
+import br.com.djavanfernando.socialvideodownloader.core.portas.ArquivoTemporario
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.time.LocalDate
 
 /** Regras de nome de Vídeo (o nome é o nome do arquivo, sem a extensão). */
@@ -19,6 +22,20 @@ object NomeDeVideo {
         nome.replace(Regex("""\s+"""), " ").trim()
             .replace(invalidos, "_")
             .trim('_', ' ', '.')
+
+    /** Reserva de nomes do app inteiro: quem escolhe um nome livre e salva o arquivo faz isso sem concorrência. */
+    private val travaDeNomes = Mutex()
+
+    /** Salva [temporario] em [pasta] com o primeiro nome livre a partir de [base]; devolve o nome e o caminho. */
+    suspend fun salvarComNomeLivre(
+        armazenamento: ArmazenamentoDeArquivos,
+        temporario: ArquivoTemporario,
+        base: String,
+        pasta: String,
+    ): Pair<String, String> = travaDeNomes.withLock {
+        val nome = livre(base, pasta, armazenamento)
+        nome to armazenamento.salvar(temporario, pasta, "$nome.${Video.EXTENSAO}")
+    }
 
     /** [base], ou `base_2`, `base_3`… — o primeiro que ainda não existe em [pasta]. */
     fun livre(base: String, pasta: String, armazenamento: ArmazenamentoDeArquivos): String =

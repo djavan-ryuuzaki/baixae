@@ -11,6 +11,7 @@ import br.com.djavanfernando.socialvideodownloader.core.Baixador
 import br.com.djavanfernando.socialvideodownloader.core.Compartilhamento
 import br.com.djavanfernando.socialvideodownloader.core.EstadoNaFila
 import br.com.djavanfernando.socialvideodownloader.core.FilaDeDownloads
+import br.com.djavanfernando.socialvideodownloader.core.VersaoSemSom
 import br.com.djavanfernando.socialvideodownloader.core.portas.Relogio
 import br.com.djavanfernando.socialvideodownloader.dados.BancoDeDados
 import br.com.djavanfernando.socialvideodownloader.dados.RepositorioRoom
@@ -58,5 +59,6 @@ class Dependencias(app: Application) {
     val baixador = Baixador(extrator, armazenamento, repositorio, relogio)
     val processador = ProcessadorAndroid(app)
     val compartilhamento = Compartilhamento(repositorio, armazenamento, preferencias, processador)
+    val versaoSemSom = VersaoSemSom(repositorio, armazenamento, processador, relogio)
     val fila = FilaDeDownloads(repositorio, baixador, conectividade, preferencias, relogio)
 }

@@ -97,4 +97,8 @@
     <string name="config_marca_dagua_descricao">Envia uma cópia com “Baixado com SocialVideoDownloader” no canto. O Vídeo da Biblioteca não muda.</string>
     <string name="marca_dagua_gerando">Gerando cópia com Marca d’água…</string>
     <string name="marca_dagua_falhou">Não foi possível gerar a cópia com Marca d’água.</string>
+    <string name="sem_som_criar">Criar versão sem som</string>
+    <string name="sem_som_criando">Criando versão sem som…</string>
+    <string name="sem_som_criada">Versão sem som criada na mesma Biblioteca</string>
+    <string name="sem_som_falhou">Não foi possível criar a versão sem som</string>
 </resources>
