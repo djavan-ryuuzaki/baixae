@@ -99,6 +99,17 @@ class FilaDeDownloads(
         }
     }
 
+    /** Nova tentativa pedida pelo usuário para um Download que falhou (nunca automática). */
+    suspend fun tentarDeNovo(id: String) {
+        trava.withLock {
+            val item = repositorio.itemDaFila(id) ?: return
+            if (item.estado != EstadoNaFila.FALHOU) return
+            if (item.falha != null && AcaoAposFalha.para(item.falha) == AcaoAposFalha.NENHUMA) return
+            repositorio.salvarItem(item.copy(estado = EstadoNaFila.PENDENTE, falha = null))
+        }
+        acordar.trySend(Unit)
+    }
+
     /** Tira da fila um item já encerrado (concluído, falhou ou cancelado). */
     suspend fun remover(id: String) {
         val item = repositorio.itemDaFila(id) ?: return

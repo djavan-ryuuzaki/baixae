@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,12 +39,15 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.djavanfernando.socialvideodownloader.Dependencias
 import br.com.djavanfernando.socialvideodownloader.R
+import br.com.djavanfernando.socialvideodownloader.core.AcaoAposFalha
 import br.com.djavanfernando.socialvideodownloader.core.EstadoNaFila
 import br.com.djavanfernando.socialvideodownloader.core.ItemDaFila
 import br.com.djavanfernando.socialvideodownloader.core.LinkNaoSuportado
 import br.com.djavanfernando.socialvideodownloader.core.LinkRepetido
 import br.com.djavanfernando.socialvideodownloader.core.Plataforma
+import br.com.djavanfernando.socialvideodownloader.core.TipoDeFalha
 import br.com.djavanfernando.socialvideodownloader.fila.AgendadorDaFila
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -61,6 +65,7 @@ class BaixarViewModel(
 ) : ViewModel() {
     private val fila = dependencias.fila
     private val acervo = dependencias.acervo
+    private val extratores = dependencias.extratores
     val link = MutableStateFlow("")
 
     /** Pasta de destino escolhida só para o próximo Download; `null` usa a padrão. */
@@ -136,6 +141,29 @@ class BaixarViewModel(
 
     fun cancelar(id: String) = viewModelScope.launch { fila.cancelar(id) }
 
+    /** Itens cujos Extratores estão sendo atualizados a pedido do usuário. */
+    val atualizando = MutableStateFlow<Set<String>>(emptySet())
+    val falhaAoAtualizar = MutableStateFlow(false)
+
+    fun tentarDeNovo(id: String) = viewModelScope.launch {
+        fila.tentarDeNovo(id)
+        iniciarFila()
+    }
+
+    fun atualizarExtratoresETentar(id: String) = viewModelScope.launch {
+        atualizando.value += id
+        try {
+            extratores.atualizarETentarDeNovo(id)
+            iniciarFila()
+        } catch (erro: CancellationException) {
+            throw erro
+        } catch (_: Exception) {
+            falhaAoAtualizar.value = true
+        } finally {
+            atualizando.value -= id
+        }
+    }
+
     fun remover(id: String) = viewModelScope.launch { fila.remover(id) }
 }
 
@@ -152,6 +180,17 @@ fun BaixarTela(dependencias: Dependencias, navegacao: Navegacao, modifier: Modif
     var trocandoPasta by rememberSaveable { mutableStateOf(false) }
     val sugestao by viewModel.sugestao.collectAsStateWithLifecycle()
     val repetido by viewModel.repetido.collectAsStateWithLifecycle()
+    val atualizando by viewModel.atualizando.collectAsStateWithLifecycle()
+    val falhaAoAtualizar by viewModel.falhaAoAtualizar.collectAsStateWithLifecycle()
+    if (falhaAoAtualizar) {
+        AlertDialog(
+            onDismissRequest = { viewModel.falhaAoAtualizar.value = false },
+            title = { Text(stringResource(R.string.extratores_falha_ao_atualizar)) },
+            confirmButton = {
+                TextButton(onClick = { viewModel.falhaAoAtualizar.value = false }) { Text(stringResource(R.string.confirmar)) }
+            },
+        )
+    }
     ObservarAreaDeTransferencia(viewModel::areaDeTransferenciaMudou)
 
     Column(
@@ -223,6 +262,9 @@ fun BaixarTela(dependencias: Dependencias, navegacao: Navegacao, modifier: Modif
                     aoAbrir = { item.videoIds.firstOrNull()?.let(navegacao::abrirVideo) },
                     aoCancelar = { viewModel.cancelar(item.id) },
                     aoRemover = { viewModel.remover(item.id) },
+                    atualizandoExtratores = item.id in atualizando,
+                    aoTentarDeNovo = { viewModel.tentarDeNovo(item.id) },
+                    aoAtualizarETentar = { viewModel.atualizarExtratoresETentar(item.id) },
                 )
             }
         }
@@ -236,6 +278,9 @@ private fun ItemDaFilaLinha(
     aoAbrir: () -> Unit,
     aoCancelar: () -> Unit,
     aoRemover: () -> Unit,
+    atualizandoExtratores: Boolean,
+    aoTentarDeNovo: () -> Unit,
+    aoAtualizarETentar: () -> Unit,
 ) {
     ListItem(
         modifier = if (item.estado == EstadoNaFila.CONCLUIDO) Modifier.clickable(onClick = aoAbrir) else Modifier,
@@ -251,6 +296,25 @@ private fun ItemDaFilaLinha(
                         MaterialTheme.colorScheme.onSurfaceVariant
                     },
                 )
+                val falha = item.falha
+                if (item.estado == EstadoNaFila.FALHOU && falha != null) {
+                    when (AcaoAposFalha.para(falha)) {
+                        AcaoAposFalha.ATUALIZAR_EXTRATORES_E_TENTAR -> TextButton(
+                            onClick = aoAtualizarETentar,
+                            enabled = !atualizandoExtratores,
+                        ) {
+                            Text(
+                                stringResource(
+                                    if (atualizandoExtratores) R.string.extratores_atualizando else R.string.falha_atualizar_e_tentar,
+                                ),
+                            )
+                        }
+                        AcaoAposFalha.TENTAR_DE_NOVO -> TextButton(onClick = aoTentarDeNovo) {
+                            Text(stringResource(R.string.falha_tentar_de_novo))
+                        }
+                        AcaoAposFalha.NENHUMA -> Unit
+                    }
+                }
                 if (item.estado == EstadoNaFila.EM_ANDAMENTO) {
                     if (progresso == null) {
                         LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -275,11 +339,19 @@ private fun ItemDaFilaLinha(
 }
 
 @Composable
+private fun mensagemDeFalha(item: ItemDaFila): String = when (item.falha) {
+    TipoDeFalha.PLATAFORMA_MUDOU -> stringResource(R.string.falha_plataforma_mudou, item.plataforma.nome)
+    TipoDeFalha.EXIGE_LOGIN -> stringResource(R.string.falha_exige_login)
+    TipoDeFalha.SEM_ESPACO -> stringResource(R.string.falha_sem_espaco)
+    TipoDeFalha.SEM_REDE, TipoDeFalha.OUTRO, null -> stringResource(R.string.estado_falhou)
+}
+
+@Composable
 fun descricaoDoEstado(item: ItemDaFila): String = when (item.estado) {
     EstadoNaFila.PENDENTE -> stringResource(R.string.estado_pendente)
     EstadoNaFila.AGUARDANDO_REDE -> stringResource(R.string.estado_aguardando_rede)
     EstadoNaFila.EM_ANDAMENTO -> stringResource(R.string.estado_em_andamento)
     EstadoNaFila.CONCLUIDO -> stringResource(R.string.estado_concluido)
-    EstadoNaFila.FALHOU -> stringResource(R.string.estado_falhou)
+    EstadoNaFila.FALHOU -> mensagemDeFalha(item)
     EstadoNaFila.CANCELADO -> stringResource(R.string.estado_cancelado)
 }

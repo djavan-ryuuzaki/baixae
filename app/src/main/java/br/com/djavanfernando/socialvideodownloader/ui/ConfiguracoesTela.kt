@@ -10,9 +10,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -24,6 +27,7 @@ import br.com.djavanfernando.socialvideodownloader.Dependencias
 import br.com.djavanfernando.socialvideodownloader.R
 import br.com.djavanfernando.socialvideodownloader.core.Configuracoes
 import br.com.djavanfernando.socialvideodownloader.core.PastaDeDestino
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,6 +41,18 @@ fun ConfiguracoesTela(dependencias: Dependencias, modifier: Modifier = Modifier)
     }
 
     var editandoPasta by rememberSaveable { mutableStateOf(false) }
+    var versaoDosExtratores by remember { mutableStateOf<String?>(null) }
+    var atualizandoExtratores by remember { mutableStateOf(false) }
+    var resultadoDaAtualizacao by remember { mutableStateOf<String?>(null) }
+    val falhaAoAtualizar = stringResource(R.string.extratores_falha_ao_atualizar)
+    val atualizados = stringResource(R.string.extratores_atualizados)
+    LaunchedEffect(Unit) {
+        versaoDosExtratores = try {
+            dependencias.extratores.versao()
+        } catch (_: Exception) {
+            null
+        }
+    }
 
     Column(modifier.fillMaxSize()) {
         TopAppBar(title = { Text(stringResource(R.string.aba_configuracoes)) })
@@ -52,6 +68,42 @@ fun ConfiguracoesTela(dependencias: Dependencias, modifier: Modifier = Modifier)
                 supportingContent = { Text(stringResource(R.string.config_so_wifi_descricao)) },
                 trailingContent = {
                     Switch(checked = configuracoes.soWifi, onCheckedChange = null)
+                },
+            )
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.extratores_titulo)) },
+                supportingContent = {
+                    Text(
+                        resultadoDaAtualizacao
+                            ?: stringResource(R.string.extratores_versao, versaoDosExtratores ?: "…"),
+                    )
+                },
+                trailingContent = {
+                    TextButton(
+                        enabled = !atualizandoExtratores,
+                        onClick = {
+                            atualizandoExtratores = true
+                            resultadoDaAtualizacao = null
+                            escopo.launch {
+                                resultadoDaAtualizacao = try {
+                                    versaoDosExtratores = dependencias.extratores.atualizar()
+                                    atualizados
+                                } catch (erro: CancellationException) {
+                                    throw erro
+                                } catch (_: Exception) {
+                                    falhaAoAtualizar
+                                } finally {
+                                    atualizandoExtratores = false
+                                }
+                            }
+                        },
+                    ) {
+                        Text(
+                            stringResource(
+                                if (atualizandoExtratores) R.string.extratores_atualizando else R.string.extratores_atualizar,
+                            ),
+                        )
+                    }
                 },
             )
             ListItem(

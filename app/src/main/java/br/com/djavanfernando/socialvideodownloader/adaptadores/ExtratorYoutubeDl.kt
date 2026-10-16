@@ -133,7 +133,10 @@ class ExtratorYoutubeDl(private val context: Context) : Extrator {
 
     override suspend fun versao(): String {
         garantirInicializado()
-        return withContext(Dispatchers.IO) { YoutubeDL.getInstance().version(context) }.orEmpty()
+        // A biblioteca só registra a versão depois de uma atualização; antes disso, pergunta ao próprio yt-dlp.
+        val registrada = withContext(Dispatchers.IO) { YoutubeDL.getInstance().version(context) }
+        if (!registrada.isNullOrBlank()) return registrada
+        return executar(YoutubeDLRequest(emptyList<String>()).addOption("--version")) {}.out.trim()
     }
 
     private fun midia(indice: Int, json: JSONObject): MidiaDoPost {

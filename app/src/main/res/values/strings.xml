@@ -101,4 +101,15 @@
     <string name="sem_som_criando">Criando versão sem som…</string>
     <string name="sem_som_criada">Versão sem som criada na mesma Biblioteca</string>
     <string name="sem_som_falhou">Não foi possível criar a versão sem som</string>
+    <string name="falha_plataforma_mudou">O %1$s mudou e o app precisa de atualização.</string>
+    <string name="falha_exige_login">Este Post exige login e não é suportado.</string>
+    <string name="falha_sem_espaco">Não há espaço livre suficiente no celular.</string>
+    <string name="falha_atualizar_e_tentar">Atualizar extratores e tentar de novo</string>
+    <string name="falha_tentar_de_novo">Tentar de novo</string>
+    <string name="extratores_titulo">Extratores</string>
+    <string name="extratores_versao">Versão %1$s</string>
+    <string name="extratores_atualizar">Atualizar</string>
+    <string name="extratores_atualizando">Atualizando…</string>
+    <string name="extratores_atualizados">Extratores atualizados</string>
+    <string name="extratores_falha_ao_atualizar">Não foi possível atualizar os extratores. Verifique a conexão.</string>
 </resources>

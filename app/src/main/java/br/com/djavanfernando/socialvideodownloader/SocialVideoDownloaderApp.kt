@@ -10,6 +10,7 @@ import br.com.djavanfernando.socialvideodownloader.core.Acervo
 import br.com.djavanfernando.socialvideodownloader.core.Baixador
 import br.com.djavanfernando.socialvideodownloader.core.Compartilhamento
 import br.com.djavanfernando.socialvideodownloader.core.EstadoNaFila
+import br.com.djavanfernando.socialvideodownloader.core.Extratores
 import br.com.djavanfernando.socialvideodownloader.core.FilaDeDownloads
 import br.com.djavanfernando.socialvideodownloader.core.VersaoSemSom
 import br.com.djavanfernando.socialvideodownloader.core.portas.Relogio
@@ -17,6 +18,7 @@ import br.com.djavanfernando.socialvideodownloader.dados.BancoDeDados
 import br.com.djavanfernando.socialvideodownloader.dados.RepositorioRoom
 import br.com.djavanfernando.socialvideodownloader.fila.AgendadorDaFila
 import br.com.djavanfernando.socialvideodownloader.fila.Notificacoes
+import br.com.djavanfernando.socialvideodownloader.fila.VerificacaoSemanalWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -33,6 +35,7 @@ class SocialVideoDownloaderApp : Application() {
         dependencias = Dependencias(this)
         dependencias.armazenamento.limparTemporarios()
         Notificacoes.criarCanais(this)
+        VerificacaoSemanalWorker.agendar(this)
         dependencias.escopo.launch {
             dependencias.acervo.iniciar()
             dependencias.fila.retomarInterrompidos()
@@ -61,4 +64,5 @@ class Dependencias(app: Application) {
     val compartilhamento = Compartilhamento(repositorio, armazenamento, preferencias, processador)
     val versaoSemSom = VersaoSemSom(repositorio, armazenamento, processador, relogio)
     val fila = FilaDeDownloads(repositorio, baixador, conectividade, preferencias, relogio)
+    val extratores = Extratores(extrator, fila, preferencias, relogio)
 }
