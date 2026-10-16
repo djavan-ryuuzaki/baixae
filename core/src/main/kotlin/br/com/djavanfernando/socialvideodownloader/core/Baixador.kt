@@ -15,7 +15,7 @@ class Baixador(
     private val relogio: Relogio,
 ) {
     suspend fun baixar(link: String, pasta: String): List<Video> {
-        val plataforma = requireNotNull(Plataforma.reconhecer(link)) { "Link não suportado: $link" }
+        val plataforma = Plataforma.reconhecer(link) ?: throw LinkNaoSuportado(link)
         val post = extrator.obterPost(link)
         val agora = relogio.agora()
         return post.midias.filter { it.tipo == TipoDeMidia.VIDEO }.map { midia ->

@@ -24,6 +24,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.djavanfernando.socialvideodownloader.Dependencias
 import br.com.djavanfernando.socialvideodownloader.R
+import br.com.djavanfernando.socialvideodownloader.core.LinkNaoSuportado
 import br.com.djavanfernando.socialvideodownloader.core.Video
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -35,6 +36,7 @@ sealed interface EstadoDoDownload {
     data object Parado : EstadoDoDownload
     data object Concluido : EstadoDoDownload
     data class Falhou(val motivo: String) : EstadoDoDownload
+    data object LinkRecusado : EstadoDoDownload
 }
 
 class BaixarViewModel(private val dependencias: Dependencias) : ViewModel() {
@@ -55,6 +57,8 @@ class BaixarViewModel(private val dependencias: Dependencias) : ViewModel() {
                 dependencias.baixador.baixar(alvo, PASTA_PADRAO)
                 link.value = ""
                 EstadoDoDownload.Concluido
+            } catch (_: LinkNaoSuportado) {
+                EstadoDoDownload.LinkRecusado
             } catch (erro: Exception) {
                 EstadoDoDownload.Falhou(erro.message ?: erro.javaClass.simpleName)
             } finally {
@@ -85,6 +89,7 @@ fun BaixarTela(dependencias: Dependencias) {
                 value = link,
                 onValueChange = { viewModel.link.value = it },
                 label = { Text(stringResource(R.string.baixar_link_rotulo)) },
+                supportingText = { Text(stringResource(R.string.plataformas_suportadas, plataformasSuportadas())) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
@@ -96,6 +101,13 @@ fun BaixarTela(dependencias: Dependencias) {
                 EstadoDoDownload.Concluido -> Text(stringResource(R.string.baixar_concluido))
                 is EstadoDoDownload.Falhou -> Text(
                     stringResource(R.string.baixar_falhou, atual.motivo),
+                    color = MaterialTheme.colorScheme.error,
+                )
+                EstadoDoDownload.LinkRecusado -> Text(
+                    stringResource(
+                        R.string.link_nao_suportado,
+                        stringResource(R.string.plataformas_suportadas, plataformasSuportadas()),
+                    ),
                     color = MaterialTheme.colorScheme.error,
                 )
             }

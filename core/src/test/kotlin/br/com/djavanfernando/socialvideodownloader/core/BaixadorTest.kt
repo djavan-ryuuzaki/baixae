@@ -7,6 +7,7 @@ import br.com.djavanfernando.socialvideodownloader.core.fakes.RepositorioEmMemor
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class BaixadorTest {
     private val armazenamento = ArmazenamentoFalso()
@@ -28,6 +29,23 @@ class BaixadorTest {
         assertEquals("conteudo de $link #0", armazenamento.arquivos[video.caminhoDoArquivo])
         assertEquals("Movies/SocialVideoDownloader/${video.nome}.mp4", video.caminhoDoArquivo)
         assertEquals(emptyMap(), armazenamento.temporarios)
+    }
+
+    @Test
+    fun `Link de fora das Plataformas e recusado sem acionar o Extrator`() = runTest {
+        assertFailsWith<LinkNaoSuportado> { baixador.baixar("https://www.tiktok.com/@a/video/1", "Movies") }
+        assertEquals(emptyList(), extrator.downloads)
+        assertEquals(emptyList(), repositorio.videos())
+    }
+
+    @Test
+    fun `Video guarda a Plataforma reconhecida no Link`() = runTest {
+        val link = "https://twitter.com/user/status/1"
+        extrator.cadastrar(link, umPost())
+
+        val video = baixador.baixar(link, "Movies").single()
+
+        assertEquals(Plataforma.X, video.plataforma)
     }
 }
 

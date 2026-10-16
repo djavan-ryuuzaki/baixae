@@ -6,6 +6,9 @@
     <string name="baixar_baixando">Baixando…</string>
     <string name="baixar_falhou">O Download falhou: %1$s</string>
     <string name="baixar_concluido">Download concluído</string>
+    <string name="plataforma_instavel">%1$s (instável)</string>
+    <string name="plataformas_suportadas">Plataformas suportadas: %1$s</string>
+    <string name="link_nao_suportado">Link não suportado. %1$s</string>
     <string name="videos_titulo">Vídeos</string>
     <string name="videos_vazio">Nenhum Vídeo baixado ainda.</string>
 </resources>
