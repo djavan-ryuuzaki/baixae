@@ -22,11 +22,9 @@ class Acervo(
 
     suspend fun video(id: String): Video? = repositorio.video(id)
 
-    /** Vídeos de uma Biblioteca, opcionalmente só os de uma Plataforma de origem. */
-    suspend fun videosDa(bibliotecaId: String, plataforma: Plataforma? = null): List<Video> =
-        repositorio.videos()
-            .filter { it.bibliotecaId == bibliotecaId }
-            .filter { plataforma == null || it.plataforma == plataforma }
+    /** Vídeos de uma Biblioteca, do mais recente ao mais antigo, com filtro por Plataforma e busca opcionais. */
+    suspend fun videosDa(bibliotecaId: String, plataforma: Plataforma? = null, busca: String = ""): List<Video> =
+        ConsultaDeVideos(bibliotecaId, plataforma, busca).aplicar(repositorio.videos())
 
     /** Vídeo já baixado do mesmo Link (o mais recente), com a Biblioteca onde ele está agora. */
     suspend fun downloadAnterior(link: String): LinkRepetido? {

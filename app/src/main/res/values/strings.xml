@@ -90,4 +90,6 @@
     <string name="arquivo_ausente">Arquivo ausente</string>
     <string name="arquivo_ausente_texto">O arquivo deste Vídeo foi apagado ou movido fora do app.</string>
     <string name="arquivo_ausente_remover">Remover da Biblioteca</string>
+    <string name="busca_dica">Buscar por nome, autor ou legenda</string>
+    <string name="busca_vazia">Nenhum Vídeo encontrado.</string>
 </resources>

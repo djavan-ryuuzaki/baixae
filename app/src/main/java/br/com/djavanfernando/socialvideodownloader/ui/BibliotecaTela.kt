@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,6 +22,7 @@ import androidx.compose.material.icons.automirrored.filled.DriveFileMove
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -28,6 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -50,6 +53,7 @@ import br.com.djavanfernando.socialvideodownloader.Dependencias
 import br.com.djavanfernando.socialvideodownloader.R
 import br.com.djavanfernando.socialvideodownloader.core.Biblioteca
 import br.com.djavanfernando.socialvideodownloader.core.BibliotecaJaExiste
+import br.com.djavanfernando.socialvideodownloader.core.ConsultaDeVideos
 import br.com.djavanfernando.socialvideodownloader.core.NomeInvalido
 import br.com.djavanfernando.socialvideodownloader.core.Plataforma
 import br.com.djavanfernando.socialvideodownloader.core.Video
@@ -66,6 +70,7 @@ class BibliotecaViewModel(private val dependencias: Dependencias, private val bi
     private val acervo = dependencias.acervo
 
     val filtro = MutableStateFlow<Plataforma?>(null)
+    val busca = MutableStateFlow("")
     val selecionados = MutableStateFlow<Set<String>>(emptySet())
 
     val biblioteca = repositorio.observarBibliotecas()
@@ -84,8 +89,8 @@ class BibliotecaViewModel(private val dependencias: Dependencias, private val bi
     val plataformas = todosDaBiblioteca.map { lista -> lista.map { it.plataforma }.distinct().sorted() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    val videos = combine(todosDaBiblioteca, filtro) { lista, plataforma ->
-        lista.filter { plataforma == null || it.plataforma == plataforma }.sortedByDescending(Video::dataDoDownload)
+    val videos = combine(repositorio.observarVideos(), filtro, busca) { lista, plataforma, termo ->
+        ConsultaDeVideos(bibliotecaId, plataforma, termo).aplicar(lista)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     fun verificarArquivos() = viewModelScope.launch { acervo.verificarArquivos(bibliotecaId) }
@@ -125,6 +130,7 @@ fun BibliotecaTela(
     val videos by viewModel.videos.collectAsStateWithLifecycle()
     val plataformas by viewModel.plataformas.collectAsStateWithLifecycle()
     val filtro by viewModel.filtro.collectAsStateWithLifecycle()
+    val busca by viewModel.busca.collectAsStateWithLifecycle()
     val selecionados by viewModel.selecionados.collectAsStateWithLifecycle()
     val outras by viewModel.outrasBibliotecas.collectAsStateWithLifecycle()
     var renomeando by rememberSaveable { mutableStateOf(false) }
@@ -168,6 +174,14 @@ fun BibliotecaTela(
                 },
             )
         }
+        OutlinedTextField(
+            value = busca,
+            onValueChange = { viewModel.busca.value = it },
+            placeholder = { Text(stringResource(R.string.busca_dica)) },
+            leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+        )
         if (plataformas.size > 1 || filtro != null) {
             Row(
                 Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
@@ -184,7 +198,10 @@ fun BibliotecaTela(
             }
         }
         if (videos.isEmpty()) {
-            Text(stringResource(R.string.biblioteca_vazia), Modifier.padding(16.dp))
+            Text(
+                stringResource(if (busca.isBlank()) R.string.biblioteca_vazia else R.string.busca_vazia),
+                Modifier.padding(16.dp),
+            )
         }
         LazyColumn {
             items(videos, key = Video::id) { video ->
