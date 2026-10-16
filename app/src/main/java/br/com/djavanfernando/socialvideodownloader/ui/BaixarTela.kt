@@ -1,5 +1,6 @@
 package br.com.djavanfernando.socialvideodownloader.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -8,10 +9,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -73,16 +72,16 @@ class BaixarViewModel(private val dependencias: Dependencias) : ViewModel() {
 }
 
 @Composable
-fun BaixarTela(dependencias: Dependencias) {
+fun BaixarTela(dependencias: Dependencias, navegacao: Navegacao, modifier: Modifier = Modifier) {
     val viewModel = viewModel { BaixarViewModel(dependencias) }
     val link by viewModel.link.collectAsStateWithLifecycle()
     val estado by viewModel.estado.collectAsStateWithLifecycle()
     val baixando by viewModel.baixando.collectAsStateWithLifecycle()
     val videos by viewModel.videos.collectAsStateWithLifecycle()
 
-    Scaffold { margens ->
+    run {
         Column(
-            Modifier.fillMaxSize().padding(margens).padding(16.dp),
+            modifier.fillMaxSize().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             OutlinedTextField(
@@ -114,7 +113,9 @@ fun BaixarTela(dependencias: Dependencias) {
             Text(stringResource(R.string.videos_titulo), style = MaterialTheme.typography.titleMedium)
             if (videos.isEmpty()) Text(stringResource(R.string.videos_vazio))
             LazyColumn {
-                items(videos, key = Video::id) { video -> ListItem(headlineContent = { Text(video.nome) }) }
+                items(videos, key = Video::id) { video ->
+                    ItemDeVideo(video, Modifier.clickable { navegacao.abrirVideo(video.id) })
+                }
             }
         }
     }

@@ -1,19 +1,17 @@
 package br.com.djavanfernando.socialvideodownloader.core
 
-import br.com.djavanfernando.socialvideodownloader.core.fakes.ArmazenamentoFalso
-import br.com.djavanfernando.socialvideodownloader.core.fakes.ExtratorFalso
-import br.com.djavanfernando.socialvideodownloader.core.fakes.RelogioFixo
-import br.com.djavanfernando.socialvideodownloader.core.fakes.RepositorioEmMemoria
+import br.com.djavanfernando.socialvideodownloader.core.fakes.Cenario
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class BaixadorTest {
-    private val armazenamento = ArmazenamentoFalso()
-    private val extrator = ExtratorFalso(armazenamento)
-    private val repositorio = RepositorioEmMemoria()
-    private val baixador = Baixador(extrator, armazenamento, repositorio, RelogioFixo())
+    private val cenario = Cenario()
+    private val armazenamento = cenario.armazenamento
+    private val extrator = cenario.extrator
+    private val repositorio = cenario.repositorio
+    private val baixador = cenario.baixador
 
     @Test
     fun `Link do YouTube gera um Video registrado com o arquivo salvo na Pasta de destino`() = runTest {
@@ -54,11 +52,12 @@ fun umPost(
     legenda: String = "legenda",
     videos: Int = 1,
     fotos: Int = 0,
+    tamanhoDeCadaVideo: Long? = 1_000,
 ) = Post(
     autor = autor,
     legenda = legenda,
     duracaoEmSegundos = 30,
     miniatura = "https://exemplo/miniatura.jpg",
-    midias = List(videos) { MidiaDoPost(indice = it, tipo = TipoDeMidia.VIDEO, tamanhoEstimadoEmBytes = 1_000) } +
+    midias = List(videos) { MidiaDoPost(indice = it, tipo = TipoDeMidia.VIDEO, tamanhoEstimadoEmBytes = tamanhoDeCadaVideo) } +
         List(fotos) { MidiaDoPost(indice = videos + it, tipo = TipoDeMidia.FOTO, tamanhoEstimadoEmBytes = 10) },
 )

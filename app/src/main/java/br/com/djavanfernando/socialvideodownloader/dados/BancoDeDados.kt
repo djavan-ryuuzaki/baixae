@@ -9,6 +9,7 @@ import androidx.room.Query
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.Upsert
+import br.com.djavanfernando.socialvideodownloader.core.Biblioteca
 import br.com.djavanfernando.socialvideodownloader.core.Plataforma
 import br.com.djavanfernando.socialvideodownloader.core.Video
 import kotlinx.coroutines.flow.Flow
@@ -27,6 +28,7 @@ data class VideoEntidade(
     val miniatura: String?,
     val pasta: String,
     val caminhoDoArquivo: String,
+    val bibliotecaId: String,
 ) {
     fun paraVideo() = Video(
         id = id,
@@ -40,6 +42,7 @@ data class VideoEntidade(
         miniatura = miniatura,
         pasta = pasta,
         caminhoDoArquivo = caminhoDoArquivo,
+        bibliotecaId = bibliotecaId,
     )
 
     companion object {
@@ -55,7 +58,21 @@ data class VideoEntidade(
             miniatura = video.miniatura,
             pasta = video.pasta,
             caminhoDoArquivo = video.caminhoDoArquivo,
+            bibliotecaId = video.bibliotecaId,
         )
+    }
+}
+
+@Entity(tableName = "bibliotecas")
+data class BibliotecaEntidade(
+    @PrimaryKey val id: String,
+    val nome: String,
+    val plataforma: String?,
+) {
+    fun paraBiblioteca() = Biblioteca(id, nome, plataforma?.let(Plataforma::valueOf))
+
+    companion object {
+        fun de(biblioteca: Biblioteca) = BibliotecaEntidade(biblioteca.id, biblioteca.nome, biblioteca.plataforma?.name)
     }
 }
 
@@ -64,6 +81,12 @@ interface VideoDao {
     @Upsert
     suspend fun salvar(video: VideoEntidade)
 
+    @Query("DELETE FROM videos WHERE id = :id")
+    suspend fun remover(id: String)
+
+    @Query("SELECT * FROM videos WHERE id = :id")
+    suspend fun porId(id: String): VideoEntidade?
+
     @Query("SELECT * FROM videos")
     suspend fun todos(): List<VideoEntidade>
 
@@ -71,9 +94,29 @@ interface VideoDao {
     fun observarTodos(): Flow<List<VideoEntidade>>
 }
 
-@Database(entities = [VideoEntidade::class], version = 1, exportSchema = false)
+@Dao
+interface BibliotecaDao {
+    @Upsert
+    suspend fun salvar(biblioteca: BibliotecaEntidade)
+
+    @Query("DELETE FROM bibliotecas WHERE id = :id")
+    suspend fun remover(id: String)
+
+    @Query("SELECT * FROM bibliotecas")
+    suspend fun todas(): List<BibliotecaEntidade>
+
+    @Query("SELECT * FROM bibliotecas")
+    fun observarTodas(): Flow<List<BibliotecaEntidade>>
+}
+
+@Database(
+    entities = [VideoEntidade::class, BibliotecaEntidade::class],
+    version = 1,
+    exportSchema = false,
+)
 abstract class BancoDeDados : RoomDatabase() {
     abstract fun videos(): VideoDao
+    abstract fun bibliotecas(): BibliotecaDao
 
     companion object {
         fun criar(context: Context): BancoDeDados =

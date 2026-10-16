@@ -7,8 +7,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import br.com.djavanfernando.socialvideodownloader.ui.BaixarTela
+import br.com.djavanfernando.socialvideodownloader.ui.App
 import br.com.djavanfernando.socialvideodownloader.ui.Tema
+import br.com.djavanfernando.socialvideodownloader.ui.rememberNavegacao
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,7 +21,7 @@ class MainActivity : ComponentActivity() {
         }
         val dependencias = (application as SocialVideoDownloaderApp).dependencias
         setContent {
-            Tema { BaixarTela(dependencias) }
+            Tema { App(dependencias, rememberNavegacao()) }
         }
     }
 }

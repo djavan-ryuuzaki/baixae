@@ -36,6 +36,7 @@ class Baixador(
                     miniatura = post.miniatura,
                     pasta = pasta,
                     caminhoDoArquivo = caminho,
+                    bibliotecaId = Biblioteca.idPadrao(plataforma),
                 ).also { repositorio.salvarVideo(it) }
             } finally {
                 armazenamento.descartarTemporario(temporario)

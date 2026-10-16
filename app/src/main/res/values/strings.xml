@@ -11,4 +11,22 @@
     <string name="link_nao_suportado">Link não suportado. %1$s</string>
     <string name="videos_titulo">Vídeos</string>
     <string name="videos_vazio">Nenhum Vídeo baixado ainda.</string>
+    <string name="aba_baixar">Baixar</string>
+    <string name="aba_bibliotecas">Bibliotecas</string>
+    <string name="aba_configuracoes">Configurações</string>
+    <string name="voltar">Voltar</string>
+    <string name="biblioteca_vazia">Nenhum Vídeo nesta Biblioteca.</string>
+    <plurals name="quantidade_de_videos">
+        <item quantity="one">%d Vídeo</item>
+        <item quantity="other">%d Vídeos</item>
+    </plurals>
+    <string name="video_reproduzir">Reproduzir</string>
+    <string name="video_abrir_original">Abrir original</string>
+    <string name="video_plataforma">Plataforma</string>
+    <string name="video_autor">Autor</string>
+    <string name="video_legenda">Legenda / título</string>
+    <string name="video_duracao">Duração</string>
+    <string name="video_data_do_download">Data do Download</string>
+    <string name="video_link">Link do Post</string>
+    <string name="nenhum_app_para_abrir">Nenhum app pode abrir isto.</string>
 </resources>

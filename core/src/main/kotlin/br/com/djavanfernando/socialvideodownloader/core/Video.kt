@@ -15,6 +15,7 @@ data class Video(
     val miniatura: String?,
     val pasta: String,
     val caminhoDoArquivo: String,
+    val bibliotecaId: String,
 ) {
     val nomeDoArquivo: String get() = "$nome.$EXTENSAO"
 
