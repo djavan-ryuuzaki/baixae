@@ -6,12 +6,15 @@ import br.com.djavanfernando.socialvideodownloader.adaptadores.ConectividadeAndr
 import br.com.djavanfernando.socialvideodownloader.adaptadores.ExtratorYoutubeDl
 import br.com.djavanfernando.socialvideodownloader.adaptadores.PreferenciasAndroid
 import br.com.djavanfernando.socialvideodownloader.adaptadores.ProcessadorAndroid
+import br.com.djavanfernando.socialvideodownloader.adaptadores.VerificadorGithub
 import br.com.djavanfernando.socialvideodownloader.core.Acervo
+import br.com.djavanfernando.socialvideodownloader.core.AtualizacoesDoApp
 import br.com.djavanfernando.socialvideodownloader.core.Baixador
 import br.com.djavanfernando.socialvideodownloader.core.Compartilhamento
 import br.com.djavanfernando.socialvideodownloader.core.EstadoNaFila
 import br.com.djavanfernando.socialvideodownloader.core.Extratores
 import br.com.djavanfernando.socialvideodownloader.core.FilaDeDownloads
+import br.com.djavanfernando.socialvideodownloader.core.VerificacaoSemanal
 import br.com.djavanfernando.socialvideodownloader.core.VersaoSemSom
 import br.com.djavanfernando.socialvideodownloader.core.portas.Relogio
 import br.com.djavanfernando.socialvideodownloader.dados.BancoDeDados
@@ -65,4 +68,10 @@ class Dependencias(app: Application) {
     val versaoSemSom = VersaoSemSom(repositorio, armazenamento, processador, relogio)
     val fila = FilaDeDownloads(repositorio, baixador, conectividade, preferencias, relogio)
     val extratores = Extratores(extrator, fila, preferencias, relogio)
+    val atualizacoesDoApp = AtualizacoesDoApp(
+        VerificadorGithub(BuildConfig.REPOSITORIO_GITHUB),
+        preferencias,
+        versaoInstalada = BuildConfig.VERSION_NAME,
+    )
+    val verificacaoSemanal = VerificacaoSemanal(extratores, atualizacoesDoApp)
 }

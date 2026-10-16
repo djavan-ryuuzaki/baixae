@@ -4,10 +4,17 @@
 
 **Blocked by:** 15
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Verificação semanal compara a versão instalada com a última release do GitHub
-- [ ] Havendo versão nova, aparece aviso com link para a página da release
-- [ ] Sem versão nova ou sem rede, nada é exibido
-- [ ] Configurações tem "Verificar atualizações agora"
-- [ ] Teste do núcleo com Verificador de versões falso cobre a comparação de versões
+- [x] Verificação semanal compara a versão instalada com a última release do GitHub
+- [x] Havendo versão nova, aparece aviso com link para a página da release
+- [x] Sem versão nova ou sem rede, nada é exibido
+- [x] Configurações tem "Verificar atualizações agora"
+- [x] Teste do núcleo com Verificador de versões falso cobre a comparação de versões
+
+## Comments
+
+- Núcleo: `Versao.maisNova`, `AtualizacoesDoApp` (silenciosa sem versão nova ou sem rede; aviso some quando a versão instalada alcança a publicada) e `VerificacaoSemanal`, que roda Extratores e versão do app na mesma tarefa.
+- Adaptador: `VerificadorGithub` consulta `releases/latest` da API do GitHub. O repositório vem da propriedade Gradle `repositorioGithub` (em `gradle.properties`, hoje vazia — com ela vazia o aviso fica desligado). **Preencher com `dono/SocialVideoDownloader` quando o repositório existir.**
+- Interface: card "Nova versão disponível" com link para a página da release em Configurações, notificação quando a tarefa semanal encontra uma versão nova e "Verificar atualizações agora".
+- Verificado no emulador compilando com `-PrepositorioGithub=yt-dlp/yt-dlp`: apareceu "Nova versão disponível: 2026.08.19" com o link; um repositório sem Releases não mostrou nada.

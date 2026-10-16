@@ -115,4 +115,10 @@
     <string name="config_qualidade">Qualidade máxima</string>
     <string name="qualidade_ate">Até %1$dp</string>
     <string name="qualidade_maxima">Máxima disponível</string>
+    <string name="nova_versao_titulo">Nova versão disponível: %1$s</string>
+    <string name="nova_versao_texto">Baixe o APK na página da versão para atualizar o app.</string>
+    <string name="nova_versao_abrir">Abrir página da versão</string>
+    <string name="versao_do_app">Versão do app: %1$s</string>
+    <string name="verificar_atualizacoes">Verificar atualizações agora</string>
+    <string name="versao_mais_recente">Nenhuma versão nova encontrada.</string>
 </resources>

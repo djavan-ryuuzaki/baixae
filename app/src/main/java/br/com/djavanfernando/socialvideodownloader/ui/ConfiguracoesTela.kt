@@ -3,6 +3,7 @@ package br.com.djavanfernando.socialvideodownloader.ui
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Column
@@ -11,6 +12,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
@@ -27,13 +31,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import android.content.Intent
+import android.net.Uri
+import br.com.djavanfernando.socialvideodownloader.BuildConfig
 import br.com.djavanfernando.socialvideodownloader.Dependencias
 import br.com.djavanfernando.socialvideodownloader.R
 import br.com.djavanfernando.socialvideodownloader.core.Configuracoes
 import br.com.djavanfernando.socialvideodownloader.core.LimiteDeQualidade
 import br.com.djavanfernando.socialvideodownloader.core.PastaDeDestino
+import br.com.djavanfernando.socialvideodownloader.core.Versao
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
@@ -49,6 +59,12 @@ fun ConfiguracoesTela(dependencias: Dependencias, modifier: Modifier = Modifier)
 
     var editandoPasta by rememberSaveable { mutableStateOf(false) }
     var escolhendoQualidade by rememberSaveable { mutableStateOf(false) }
+    var verificandoVersao by remember { mutableStateOf(false) }
+    var resultadoDaVerificacao by remember { mutableStateOf<String?>(null) }
+    val versaoMaisRecente = stringResource(R.string.versao_mais_recente)
+    val novaVersao = configuracoes.novaVersao
+        ?.takeIf { Versao.maisNova(it.versao, BuildConfig.VERSION_NAME) }
+    val context = LocalContext.current
     var versaoDosExtratores by remember { mutableStateOf<String?>(null) }
     var atualizandoExtratores by remember { mutableStateOf(false) }
     var resultadoDaAtualizacao by remember { mutableStateOf<String?>(null) }
@@ -65,6 +81,20 @@ fun ConfiguracoesTela(dependencias: Dependencias, modifier: Modifier = Modifier)
     Column(modifier.fillMaxSize()) {
         TopAppBar(title = { Text(stringResource(R.string.aba_configuracoes)) })
         Column(Modifier.verticalScroll(rememberScrollState())) {
+            if (novaVersao != null) {
+                Card(
+                    Modifier.fillMaxWidth().padding(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                ) {
+                    Column(Modifier.padding(16.dp)) {
+                        Text(stringResource(R.string.nova_versao_titulo, novaVersao.versao), style = MaterialTheme.typography.titleMedium)
+                        Text(stringResource(R.string.nova_versao_texto))
+                        TextButton(onClick = {
+                            context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(novaVersao.endereco)))
+                        }) { Text(stringResource(R.string.nova_versao_abrir)) }
+                    }
+                }
+            }
             ListItem(
                 modifier = Modifier.clickable { editandoPasta = true },
                 headlineContent = { Text(stringResource(R.string.config_pasta_padrao)) },
@@ -117,6 +147,24 @@ fun ConfiguracoesTela(dependencias: Dependencias, modifier: Modifier = Modifier)
                             ),
                         )
                     }
+                },
+            )
+            ListItem(
+                headlineContent = { Text(stringResource(R.string.versao_do_app, BuildConfig.VERSION_NAME)) },
+                supportingContent = resultadoDaVerificacao?.let { { Text(it) } },
+                trailingContent = {
+                    TextButton(
+                        enabled = !verificandoVersao,
+                        onClick = {
+                            verificandoVersao = true
+                            resultadoDaVerificacao = null
+                            escopo.launch {
+                                val encontrada = dependencias.atualizacoesDoApp.verificar()
+                                resultadoDaVerificacao = if (encontrada == null) versaoMaisRecente else null
+                                verificandoVersao = false
+                            }
+                        },
+                    ) { Text(stringResource(R.string.verificar_atualizacoes)) }
                 },
             )
             ListItem(

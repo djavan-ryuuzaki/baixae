@@ -7,16 +7,19 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import br.com.djavanfernando.socialvideodownloader.MainActivity
 import br.com.djavanfernando.socialvideodownloader.R
 import br.com.djavanfernando.socialvideodownloader.core.EstadoNaFila
 import br.com.djavanfernando.socialvideodownloader.core.ItemDaFila
+import br.com.djavanfernando.socialvideodownloader.core.portas.VersaoPublicada
 
 object Notificacoes {
     const val ID_DA_FILA = 1
     private const val ID_DE_CONCLUSAO = 2
+    private const val ID_DE_NOVA_VERSAO = 3
     private const val CANAL_DA_FILA = "fila"
     private const val CANAL_DE_AVISOS = "avisos"
 
@@ -80,6 +83,22 @@ object Notificacoes {
             .setAutoCancel(true)
             .build()
         NotificationManagerCompat.from(context).notifySeguro(id, notificacao)
+    }
+
+    fun avisarNovaVersao(context: Context, versao: VersaoPublicada) {
+        val pagina = PendingIntent.getActivity(
+            context,
+            1,
+            Intent(Intent.ACTION_VIEW, Uri.parse(versao.endereco)),
+            PendingIntent.FLAG_IMMUTABLE,
+        )
+        avisar(
+            context,
+            ID_DE_NOVA_VERSAO,
+            context.getString(R.string.nova_versao_titulo, versao.versao),
+            context.getString(R.string.nova_versao_texto),
+            pagina,
+        )
     }
 
     private fun abrirApp(context: Context): PendingIntent = PendingIntent.getActivity(

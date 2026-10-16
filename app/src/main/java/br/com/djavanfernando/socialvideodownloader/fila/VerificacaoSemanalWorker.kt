@@ -11,17 +11,19 @@ import androidx.work.WorkerParameters
 import br.com.djavanfernando.socialvideodownloader.SocialVideoDownloaderApp
 import java.util.concurrent.TimeUnit
 
-/** Tarefa periódica semanal: atualiza os Extratores. */
+/** Tarefa periódica semanal: atualiza os Extratores e procura uma nova versão do app. */
 class VerificacaoSemanalWorker(context: Context, parametros: WorkerParameters) : CoroutineWorker(context, parametros) {
     override suspend fun doWork(): Result {
         val dependencias = (applicationContext as SocialVideoDownloaderApp).dependencias
-        return try {
-            dependencias.extratores.verificacaoSemanal()
-            Result.success()
+        val conhecida = dependencias.atualizacoesDoApp.novaVersaoDisponivel()
+        try {
+            dependencias.verificacaoSemanal.executar()
         } catch (_: Exception) {
             // Sem nova tentativa imediata: a próxima execução semanal tenta de novo.
-            Result.success()
         }
+        val nova = dependencias.atualizacoesDoApp.novaVersaoDisponivel()
+        if (nova != null && nova != conhecida) Notificacoes.avisarNovaVersao(applicationContext, nova)
+        return Result.success()
     }
 
     companion object {
