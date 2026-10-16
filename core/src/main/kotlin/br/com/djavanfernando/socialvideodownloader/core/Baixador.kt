@@ -21,10 +21,11 @@ class Baixador(
         aoProgredir: (Float) -> Unit = {},
     ): List<Video> {
         val plataforma = Plataforma.reconhecer(link) ?: throw LinkNaoSuportado(link)
-        val post = extrator.obterPost(link)
+        val post = extrator.obterPost(link, limite)
         aoObterPost(post)
         val agora = relogio.agora()
         val midias = post.midias.filter { it.tipo == TipoDeMidia.VIDEO }
+        verificarEspaco(midias, pasta)
         return midias.mapIndexed { posicao, midia ->
             val temporario = armazenamento.criarTemporario()
             try {
@@ -48,6 +49,18 @@ class Baixador(
             } finally {
                 armazenamento.descartarTemporario(temporario)
             }
+        }
+    }
+
+    /**
+     * Falha antes de começar se o tamanho estimado não couber. Conta o dobro do estimado: o vídeo é
+     * gravado primeiro num temporário e depois copiado para a Pasta de destino.
+     */
+    private fun verificarEspaco(midias: List<MidiaDoPost>, pasta: String) {
+        val estimado = midias.sumOf { it.tamanhoEstimadoEmBytes ?: 0L }
+        if (estimado <= 0) return
+        if (armazenamento.espacoLivre(pasta) < estimado * 2) {
+            throw FalhaDoExtrator(TipoDeFalha.SEM_ESPACO, "Espaço insuficiente: são necessários ${estimado * 2} bytes")
         }
     }
 }

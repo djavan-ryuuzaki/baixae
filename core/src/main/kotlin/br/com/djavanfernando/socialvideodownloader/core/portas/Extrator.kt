@@ -8,7 +8,8 @@ import br.com.djavanfernando.socialvideodownloader.core.Post
  * Falhas conhecidas são lançadas como [br.com.djavanfernando.socialvideodownloader.core.FalhaDoExtrator].
  */
 interface Extrator {
-    suspend fun obterPost(link: String): Post
+    /** Metadados do Post; o tamanho estimado de cada vídeo considera o [limite] de qualidade. */
+    suspend fun obterPost(link: String, limite: LimiteDeQualidade): Post
 
     /** Baixa a mídia de [indice] do Post para [destino]; cancelável pelo cancelamento da coroutine. */
     suspend fun baixar(

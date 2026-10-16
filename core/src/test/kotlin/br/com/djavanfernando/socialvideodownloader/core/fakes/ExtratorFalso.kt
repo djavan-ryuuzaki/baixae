@@ -39,7 +39,7 @@ class ExtratorFalso(private val armazenamento: ArmazenamentoFalso) : Extrator {
         falhas[link] = falha
     }
 
-    override suspend fun obterPost(link: String): Post =
+    override suspend fun obterPost(link: String, limite: LimiteDeQualidade): Post =
         posts[link] ?: error("Post não cadastrado: $link")
 
     override suspend fun baixar(

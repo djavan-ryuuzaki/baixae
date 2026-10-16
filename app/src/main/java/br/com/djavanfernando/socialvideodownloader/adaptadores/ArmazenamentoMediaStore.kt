@@ -5,6 +5,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.os.StatFs
 import android.provider.MediaStore
 import br.com.djavanfernando.socialvideodownloader.core.portas.ArmazenamentoDeArquivos
 import br.com.djavanfernando.socialvideodownloader.core.portas.ArquivoTemporario
@@ -80,6 +81,11 @@ class ArmazenamentoMediaStore(private val context: Context) : ArmazenamentoDeArq
         }
         return caminho
     }
+
+    /** Menor espaço livre entre o cache (onde fica o temporário) e o armazenamento compartilhado. */
+    @Suppress("DEPRECATION")
+    override fun espacoLivre(pasta: String): Long =
+        minOf(StatFs(context.cacheDir.path).availableBytes, StatFs(Environment.getExternalStorageDirectory().path).availableBytes)
 
     override fun existe(caminho: String): Boolean {
         val uri = Uri.parse(caminho)

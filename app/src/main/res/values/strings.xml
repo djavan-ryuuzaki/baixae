@@ -112,4 +112,7 @@
     <string name="extratores_atualizando">Atualizando…</string>
     <string name="extratores_atualizados">Extratores atualizados</string>
     <string name="extratores_falha_ao_atualizar">Não foi possível atualizar os extratores. Verifique a conexão.</string>
+    <string name="config_qualidade">Qualidade máxima</string>
+    <string name="qualidade_ate">Até %1$dp</string>
+    <string name="qualidade_maxima">Máxima disponível</string>
 </resources>

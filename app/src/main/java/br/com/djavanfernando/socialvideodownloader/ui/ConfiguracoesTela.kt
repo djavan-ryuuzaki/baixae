@@ -1,13 +1,18 @@
 package br.com.djavanfernando.socialvideodownloader.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -20,12 +25,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import br.com.djavanfernando.socialvideodownloader.Dependencias
 import br.com.djavanfernando.socialvideodownloader.R
 import br.com.djavanfernando.socialvideodownloader.core.Configuracoes
+import br.com.djavanfernando.socialvideodownloader.core.LimiteDeQualidade
 import br.com.djavanfernando.socialvideodownloader.core.PastaDeDestino
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
@@ -41,6 +48,7 @@ fun ConfiguracoesTela(dependencias: Dependencias, modifier: Modifier = Modifier)
     }
 
     var editandoPasta by rememberSaveable { mutableStateOf(false) }
+    var escolhendoQualidade by rememberSaveable { mutableStateOf(false) }
     var versaoDosExtratores by remember { mutableStateOf<String?>(null) }
     var atualizandoExtratores by remember { mutableStateOf(false) }
     var resultadoDaAtualizacao by remember { mutableStateOf<String?>(null) }
@@ -61,6 +69,11 @@ fun ConfiguracoesTela(dependencias: Dependencias, modifier: Modifier = Modifier)
                 modifier = Modifier.clickable { editandoPasta = true },
                 headlineContent = { Text(stringResource(R.string.config_pasta_padrao)) },
                 supportingContent = { Text(configuracoes.pastaPadrao) },
+            )
+            ListItem(
+                modifier = Modifier.clickable { escolhendoQualidade = true },
+                headlineContent = { Text(stringResource(R.string.config_qualidade)) },
+                supportingContent = { Text(rotuloDaQualidade(configuracoes.limiteDeQualidade)) },
             )
             ListItem(
                 modifier = Modifier.toggleable(configuracoes.soWifi) { ligado -> alterar { it.copy(soWifi = ligado) } },
@@ -116,6 +129,30 @@ fun ConfiguracoesTela(dependencias: Dependencias, modifier: Modifier = Modifier)
             )
         }
     }
+    if (escolhendoQualidade) {
+        AlertDialog(
+            onDismissRequest = { escolhendoQualidade = false },
+            title = { Text(stringResource(R.string.config_qualidade)) },
+            text = {
+                Column {
+                    LimiteDeQualidade.entries.forEach { limite ->
+                        Row(
+                            Modifier.fillMaxWidth().selectable(configuracoes.limiteDeQualidade == limite) {
+                                alterar { it.copy(limiteDeQualidade = limite) }
+                                escolhendoQualidade = false
+                            },
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            RadioButton(selected = configuracoes.limiteDeQualidade == limite, onClick = null)
+                            Text(rotuloDaQualidade(limite))
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { escolhendoQualidade = false }) { Text(stringResource(R.string.cancelar)) } },
+        )
+    }
     if (editandoPasta) {
         DialogoDePasta(
             titulo = stringResource(R.string.config_pasta_padrao),
@@ -125,6 +162,10 @@ fun ConfiguracoesTela(dependencias: Dependencias, modifier: Modifier = Modifier)
         )
     }
 }
+
+@Composable
+private fun rotuloDaQualidade(limite: LimiteDeQualidade): String =
+    limite.alturaMaxima?.let { stringResource(R.string.qualidade_ate, it) } ?: stringResource(R.string.qualidade_maxima)
 
 /** Diálogo para escolher uma Pasta de destino, validada pelas regras do núcleo. */
 @Composable

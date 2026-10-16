@@ -15,6 +15,9 @@ interface ArmazenamentoDeArquivos {
     /** Renomeia o arquivo dentro da mesma pasta e devolve o novo caminho. */
     fun renomear(caminho: String, novoNomeDoArquivo: String): String
 
+    /** Bytes livres para gravar em [pasta] (incluindo o temporário do Download). */
+    fun espacoLivre(pasta: String): Long
+
     fun existe(caminho: String): Boolean
 
     /** Apaga o arquivo; não falha se ele já não existir. */

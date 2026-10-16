@@ -39,6 +39,10 @@ class ArmazenamentoFalso : ArmazenamentoDeArquivos {
         return novo
     }
 
+    var espacoLivre = Long.MAX_VALUE
+
+    override fun espacoLivre(pasta: String): Long = espacoLivre
+
     override fun existe(caminho: String): Boolean = caminho in arquivos
 
     override fun apagar(caminho: String) {

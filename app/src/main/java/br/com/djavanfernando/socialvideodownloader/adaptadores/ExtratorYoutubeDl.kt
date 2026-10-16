@@ -5,6 +5,7 @@ import br.com.djavanfernando.socialvideodownloader.core.FalhaDoExtrator
 import br.com.djavanfernando.socialvideodownloader.core.LimiteDeQualidade
 import br.com.djavanfernando.socialvideodownloader.core.MidiaDoPost
 import br.com.djavanfernando.socialvideodownloader.core.Post
+import br.com.djavanfernando.socialvideodownloader.core.TipoDeFalha
 import br.com.djavanfernando.socialvideodownloader.core.TipoDeMidia
 import br.com.djavanfernando.socialvideodownloader.core.portas.ArquivoTemporario
 import br.com.djavanfernando.socialvideodownloader.core.portas.Extrator
@@ -40,14 +41,15 @@ class ExtratorYoutubeDl(private val context: Context) : Extrator {
         }
     }
 
-    override suspend fun obterPost(link: String): Post {
+    override suspend fun obterPost(link: String, limite: LimiteDeQualidade): Post {
         garantirInicializado()
-        val pedido = YoutubeDLRequest(link).apply {
-            addOption("--dump-single-json")
-            addOption("--no-playlist")
-            addOption("--no-warnings")
+        val json = try {
+            lerMetadados(link, formato(limite))
+        } catch (falha: FalhaDoExtrator) {
+            // Mídias sem formato compatível (ex.: fotos de um carrossel) fazem a seleção falhar; sem ela, o tamanho fica desconhecido.
+            if (falha.tipo != TipoDeFalha.PLATAFORMA_MUDOU && falha.tipo != TipoDeFalha.OUTRO) throw falha
+            lerMetadados(link, formato = null)
         }
-        val json = JSONObject(executar(pedido) { _ -> }.out)
         val entradas = json.optJSONArray("entries")
         val midias = if (entradas == null) {
             listOf(midia(0, json))
@@ -74,14 +76,8 @@ class ExtratorYoutubeDl(private val context: Context) : Extrator {
     ) {
         garantirInicializado()
         val arquivoFinal = File(destino.caminho)
-        val altura = limite.alturaMaxima
-        val formato = if (altura == null) {
-            "bv*+ba/b"
-        } else {
-            "bv*[height<=$altura]+ba/b[height<=$altura]/bv*+ba/b"
-        }
         val pedido = YoutubeDLRequest(link).apply {
-            addOption("-f", formato)
+            addOption("-f", formato(limite))
             addOption("-S", "vcodec:h264,res,acodec:m4a")
             addOption("--merge-output-format", "mp4")
             addOption("--remux-video", "mp4")
@@ -93,6 +89,22 @@ class ExtratorYoutubeDl(private val context: Context) : Extrator {
         }
         executar(pedido) { progresso -> aoProgredir((progresso / 100f).coerceIn(0f, 1f)) }
         if (!arquivoFinal.exists()) error("O Extrator não gerou o arquivo esperado")
+    }
+
+    private suspend fun lerMetadados(link: String, formato: String?): JSONObject {
+        val pedido = YoutubeDLRequest(link).apply {
+            addOption("--dump-single-json")
+            if (formato != null) addOption("-f", formato)
+            addOption("--no-playlist")
+            addOption("--no-warnings")
+        }
+        return JSONObject(executar(pedido) {}.out)
+    }
+
+    /** Melhor vídeo até a altura do limite; se não houver nenhum assim, o melhor disponível. */
+    private fun formato(limite: LimiteDeQualidade): String {
+        val altura = limite.alturaMaxima ?: return "bv*+ba/b"
+        return "bv*[height<=$altura]+ba/b[height<=$altura]/bv*+ba/b"
     }
 
     /** Executa o yt-dlp; o cancelamento da coroutine encerra o processo. */
