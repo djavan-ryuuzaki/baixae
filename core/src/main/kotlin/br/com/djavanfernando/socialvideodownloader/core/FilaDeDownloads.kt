@@ -56,6 +56,9 @@ class FilaDeDownloads(
 ) {
     private val trava = Mutex()
     private val emAndamento = mutableMapOf<String, Job>()
+
+    /** Downloads em andamento que o usuário mandou cancelar; os demais cancelamentos vêm do sistema. */
+    private val canceladosPeloUsuario = mutableSetOf<String>()
     private val acordar = Channel<Unit>(Channel.CONFLATED)
     private val _progresso = MutableStateFlow<Map<String, Float>>(emptyMap())
 
@@ -91,6 +94,7 @@ class FilaDeDownloads(
         trava.withLock {
             val job = emAndamento[id]
             if (job != null) {
+                canceladosPeloUsuario += id
                 job.cancel()
                 return
             }
@@ -164,10 +168,14 @@ class FilaDeDownloads(
             )
             item = item.copy(estado = EstadoNaFila.CONCLUIDO, videoIds = videos.map { it.id })
         } catch (cancelamento: CancellationException) {
-            item = item.copy(estado = EstadoNaFila.CANCELADO)
+            // Parada do sistema (ex.: o Android encerrou o trabalho em segundo plano) não é desistência: volta à fila.
+            val peloUsuario = trava.withLock { canceladosPeloUsuario.remove(item.id) }
+            item = item.copy(estado = if (peloUsuario) EstadoNaFila.CANCELADO else EstadoNaFila.PENDENTE)
             throw cancelamento
         } catch (falha: FalhaDoExtrator) {
-            item = if (falha.tipo == TipoDeFalha.SEM_REDE) {
+            // Só espera a rede se o celular estiver mesmo sem rede; com rede, é falha (sem nova tentativa automática).
+            val semRede = falha.tipo == TipoDeFalha.SEM_REDE && !redePermite(preferencias.ler())
+            item = if (semRede) {
                 aguardando += item.id
                 item.copy(estado = EstadoNaFila.AGUARDANDO_REDE)
             } else {
@@ -181,6 +189,7 @@ class FilaDeDownloads(
                 trava.withLock {
                     repositorio.salvarItem(item)
                     emAndamento.remove(item.id)
+                    canceladosPeloUsuario.remove(item.id)
                     _progresso.update { it - item.id }
                 }
                 acordar.trySend(Unit)

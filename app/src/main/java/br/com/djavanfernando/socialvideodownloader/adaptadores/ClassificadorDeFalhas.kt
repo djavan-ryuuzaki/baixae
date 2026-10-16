@@ -4,10 +4,11 @@ import br.com.djavanfernando.socialvideodownloader.core.TipoDeFalha
 
 /** Traduz a saída de erro do yt-dlp num [TipoDeFalha]. */
 object ClassificadorDeFalhas {
+    /** Bloqueios temporários (anti-robô, limite de requisições): o yt-dlp sugere cookies, mas não é Post privado. */
+    private val bloqueioTemporario = listOf("not a bot", "too many requests", "http error 429")
     private val exigeLogin = listOf(
-        "sign in to confirm",
+        "sign in to confirm your age",
         "login required",
-        "log in",
         "private video",
         "this video is private",
         "account is private",
@@ -17,7 +18,6 @@ object ClassificadorDeFalhas {
         "members-only",
         "join this channel",
         "requested content is not available",
-        "cookies",
     )
     private val semRede = listOf(
         "failed to resolve",
@@ -53,6 +53,7 @@ object ClassificadorDeFalhas {
         return when {
             semEspaco.any(texto::contains) -> TipoDeFalha.SEM_ESPACO
             semRede.any(texto::contains) -> TipoDeFalha.SEM_REDE
+            bloqueioTemporario.any(texto::contains) -> TipoDeFalha.OUTRO
             exigeLogin.any(texto::contains) -> TipoDeFalha.EXIGE_LOGIN
             plataformaMudou.any(texto::contains) -> TipoDeFalha.PLATAFORMA_MUDOU
             else -> TipoDeFalha.OUTRO

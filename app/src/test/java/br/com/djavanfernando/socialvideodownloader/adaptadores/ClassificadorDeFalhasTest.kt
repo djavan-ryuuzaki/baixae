@@ -16,6 +16,8 @@ class ClassificadorDeFalhasTest {
             "ERROR: [facebook] 123: Unable to extract video data" to TipoDeFalha.PLATAFORMA_MUDOU,
             "WARNING: [youtube] nsig extraction failed: You may experience throttling" to TipoDeFalha.PLATAFORMA_MUDOU,
             "ERROR: algo inesperado" to TipoDeFalha.OUTRO,
+            "ERROR: [youtube] abc: Sign in to confirm you're not a bot. Use --cookies-from-browser or --cookies for the authentication." to TipoDeFalha.OUTRO,
+            "ERROR: [twitter] 1: HTTP Error 429: Too Many Requests. Use --cookies to log in" to TipoDeFalha.OUTRO,
         )
         casos.forEach { (mensagem, esperado) -> assertEquals(esperado, ClassificadorDeFalhas.classificar(mensagem), mensagem) }
     }

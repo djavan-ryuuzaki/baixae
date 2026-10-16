@@ -8,6 +8,7 @@ import android.os.Environment
 import android.os.StatFs
 import android.provider.MediaStore
 import br.com.djavanfernando.socialvideodownloader.core.portas.ArmazenamentoDeArquivos
+import br.com.djavanfernando.socialvideodownloader.core.portas.ArquivoSalvo
 import br.com.djavanfernando.socialvideodownloader.core.portas.ArquivoTemporario
 import java.io.File
 import java.io.FileNotFoundException
@@ -48,7 +49,7 @@ class ArmazenamentoMediaStore(private val context: Context) : ArmazenamentoDeArq
         return false
     }
 
-    override fun salvar(temporario: ArquivoTemporario, pasta: String, nomeDoArquivo: String): String {
+    override fun salvar(temporario: ArquivoTemporario, pasta: String, nomeDoArquivo: String): ArquivoSalvo {
         val origem = File(temporario.caminho)
         val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             salvarComMediaStore(origem, pasta, nomeDoArquivo)
@@ -56,10 +57,16 @@ class ArmazenamentoMediaStore(private val context: Context) : ArmazenamentoDeArq
             salvarComArquivoPublico(origem, pasta, nomeDoArquivo)
         }
         origem.delete()
-        return uri.toString()
+        return ArquivoSalvo(uri.toString(), nomeReal(uri) ?: nomeDoArquivo)
     }
 
-    override fun renomear(caminho: String, novoNomeDoArquivo: String): String {
+    /** Nome com que o MediaStore gravou o arquivo (ele acrescenta " (1)" se houver outro, invisível ao app, com o mesmo nome). */
+    private fun nomeReal(uri: Uri): String? =
+        resolver.query(uri, arrayOf(MediaStore.MediaColumns.DISPLAY_NAME), null, null, null)?.use {
+            if (it.moveToFirst()) it.getString(0) else null
+        }
+
+    override fun renomear(caminho: String, novoNomeDoArquivo: String): ArquivoSalvo {
         val uri = Uri.parse(caminho)
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             val atual = File(caminhoReal(uri) ?: error("Arquivo não encontrado"))
@@ -79,7 +86,7 @@ class ArmazenamentoMediaStore(private val context: Context) : ArmazenamentoDeArq
             val valores = ContentValues().apply { put(MediaStore.MediaColumns.DISPLAY_NAME, novoNomeDoArquivo) }
             check(resolver.update(uri, valores, null, null) > 0) { "Não foi possível renomear o arquivo" }
         }
-        return caminho
+        return ArquivoSalvo(caminho, nomeReal(uri) ?: novoNomeDoArquivo)
     }
 
     /** Menor espaço livre entre o cache (onde fica o temporário) e o armazenamento compartilhado. */

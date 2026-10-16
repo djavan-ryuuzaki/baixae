@@ -110,10 +110,40 @@ class FilaDeDownloadsTest {
         extrator.cadastrar(link(1), umPost())
         extrator.falhar(link(1), FalhaDoExtrator(TipoDeFalha.SEM_REDE))
         fila.enfileirar(link(1))
+        extrator.aoFalhar = { cenario.conectividade.estado = EstadoDaRede.SEM_REDE }
 
         fila.processar()
 
         assertEquals(listOf(EstadoNaFila.AGUARDANDO_REDE), estados())
+        assertEquals(emptyMap(), cenario.armazenamento.temporarios)
+    }
+
+    @Test
+    fun `erro de rede com o celular conectado e falha, sem nova tentativa automatica`() = runTest {
+        extrator.cadastrar(link(1), umPost())
+        extrator.falhar(link(1), FalhaDoExtrator(TipoDeFalha.SEM_REDE))
+        fila.enfileirar(link(1))
+
+        fila.processar()
+
+        val item = cenario.repositorio.itensDaFila().single()
+        assertEquals(EstadoNaFila.FALHOU, item.estado)
+        assertEquals(TipoDeFalha.SEM_REDE, item.falha)
+        assertEquals(false, fila.haDownloadsAguardandoRede())
+    }
+
+    @Test
+    fun `Download interrompido pelo sistema volta a ficar pendente, nao cancelado`() = runTest {
+        extrator.cadastrar(link(1), umPost())
+        extrator.segurar(link(1))
+        fila.enfileirar(link(1))
+        val execucao = backgroundScope.launch { fila.processar() }
+        runCurrent()
+
+        execucao.cancel()
+        runCurrent()
+
+        assertEquals(listOf(EstadoNaFila.PENDENTE), estados())
         assertEquals(emptyMap(), cenario.armazenamento.temporarios)
     }
 

@@ -58,4 +58,16 @@ class NomesTest {
 
         assertEquals(primeiro.nome, segundo.nome)
     }
+
+    @Test
+    fun `se o armazenamento salvar com outro nome, o Video fica com o nome real do arquivo`() = runTest {
+        val link = "https://x.com/a/status/1"
+        cenario.extrator.cadastrar(link, umPost(autor = "Maria"))
+        cenario.armazenamento.ocultos += "Movies/x_Maria_2026-10-16.mp4"
+
+        val video = cenario.baixador.baixar(link, "Movies").single()
+
+        assertEquals("x_Maria_2026-10-16 (1)", video.nome)
+        assertEquals("Movies/x_Maria_2026-10-16 (1).mp4", video.caminhoDoArquivo)
+    }
 }

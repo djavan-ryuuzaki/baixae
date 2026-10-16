@@ -42,10 +42,10 @@ class Acervo(
         val nome = NomeDeVideo.sanitizar(novoNome)
         if (nome.isEmpty()) throw NomeInvalido(novoNome)
         if (nome == video.nome) return video
-        val nomeDoArquivo = "$nome.${Video.EXTENSAO}"
-        if (armazenamento.existeNaPasta(video.pasta, nomeDoArquivo)) throw NomeJaExiste(nome)
-        val caminho = armazenamento.renomear(video.caminhoDoArquivo, nomeDoArquivo)
-        return video.copy(nome = nome, caminhoDoArquivo = caminho).also { repositorio.salvarVideo(it) }
+        if (armazenamento.existeNaPasta(video.pasta, Video.nomeDoArquivo(nome))) throw NomeJaExiste(nome)
+        val salvo = armazenamento.renomear(video.caminhoDoArquivo, Video.nomeDoArquivo(nome))
+        return video.copy(nome = Video.nomeSemExtensao(salvo.nomeDoArquivo), caminhoDoArquivo = salvo.caminho)
+            .also { repositorio.salvarVideo(it) }
     }
 
     /** Tira o Vídeo do app e, se pedido, apaga também o arquivo do celular. */

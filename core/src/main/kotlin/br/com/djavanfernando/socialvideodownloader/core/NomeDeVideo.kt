@@ -33,13 +33,13 @@ object NomeDeVideo {
         base: String,
         pasta: String,
     ): Pair<String, String> = travaDeNomes.withLock {
-        val nome = livre(base, pasta, armazenamento)
-        nome to armazenamento.salvar(temporario, pasta, "$nome.${Video.EXTENSAO}")
+        val salvo = armazenamento.salvar(temporario, pasta, Video.nomeDoArquivo(livre(base, pasta, armazenamento)))
+        Video.nomeSemExtensao(salvo.nomeDoArquivo) to salvo.caminho
     }
 
     /** [base], ou `base_2`, `base_3`… — o primeiro que ainda não existe em [pasta]. */
     fun livre(base: String, pasta: String, armazenamento: ArmazenamentoDeArquivos): String =
         generateSequence(1) { it + 1 }
             .map { if (it == 1) base else "${base}_$it" }
-            .first { !armazenamento.existeNaPasta(pasta, "$it.${Video.EXTENSAO}") }
+            .first { !armazenamento.existeNaPasta(pasta, Video.nomeDoArquivo(it)) }
 }

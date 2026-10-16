@@ -21,6 +21,9 @@ class ExtratorFalso(private val armazenamento: ArmazenamentoFalso) : Extrator {
     var versaoAposAtualizar = "2026.10.01"
     var atualizacoes = 0
 
+    /** Executado logo antes de uma falha programada ser lançada (ex.: derrubar a rede junto). */
+    var aoFalhar: () -> Unit = {}
+
     fun cadastrar(link: String, post: Post) {
         posts[link] = post
     }
@@ -54,7 +57,10 @@ class ExtratorFalso(private val armazenamento: ArmazenamentoFalso) : Extrator {
         armazenamento.escreverTemporario(destino, "parcial")
         aoProgredir(0.5f)
         travas[link]?.await()
-        falhas.remove(link)?.let { throw it }
+        falhas.remove(link)?.let {
+            aoFalhar()
+            throw it
+        }
         armazenamento.escreverTemporario(destino, "conteudo de $link #$indice")
         aoProgredir(1f)
     }

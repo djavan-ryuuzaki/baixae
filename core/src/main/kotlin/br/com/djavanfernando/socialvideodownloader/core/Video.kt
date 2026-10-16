@@ -21,9 +21,13 @@ data class Video(
     /** Vídeo de onde este foi derivado (ex.: Versão sem som). */
     val origemId: String? = null,
 ) {
-    val nomeDoArquivo: String get() = "$nome.$EXTENSAO"
+    val nomeDoArquivo: String get() = nomeDoArquivo(nome)
 
     companion object {
         const val EXTENSAO = "mp4"
+
+        fun nomeDoArquivo(nome: String) = "$nome.$EXTENSAO"
+
+        fun nomeSemExtensao(nomeDoArquivo: String) = nomeDoArquivo.removeSuffix(".$EXTENSAO")
     }
 }

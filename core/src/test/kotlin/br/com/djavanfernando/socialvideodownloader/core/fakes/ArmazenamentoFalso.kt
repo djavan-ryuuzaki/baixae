@@ -1,12 +1,16 @@
 package br.com.djavanfernando.socialvideodownloader.core.fakes
 
 import br.com.djavanfernando.socialvideodownloader.core.portas.ArmazenamentoDeArquivos
+import br.com.djavanfernando.socialvideodownloader.core.portas.ArquivoSalvo
 import br.com.djavanfernando.socialvideodownloader.core.portas.ArquivoTemporario
 
 /** Armazenamento em memória: arquivos são indexados por "pasta/nomeDoArquivo". */
 class ArmazenamentoFalso : ArmazenamentoDeArquivos {
     val arquivos = mutableMapOf<String, String>()
     val temporarios = mutableMapOf<String, String>()
+
+    /** Arquivos que existem na pasta mas o app não enxerga (ex.: de outro app); salvar por cima ganha " (1)", como no MediaStore. */
+    val ocultos = mutableSetOf<String>()
     private var proximoTemporario = 0
 
     fun escreverTemporario(temporario: ArquivoTemporario, conteudo: String) {
@@ -23,20 +27,25 @@ class ArmazenamentoFalso : ArmazenamentoDeArquivos {
     override fun existeNaPasta(pasta: String, nomeDoArquivo: String): Boolean =
         arquivos.containsKey("$pasta/$nomeDoArquivo")
 
-    override fun salvar(temporario: ArquivoTemporario, pasta: String, nomeDoArquivo: String): String {
+    override fun salvar(temporario: ArquivoTemporario, pasta: String, nomeDoArquivo: String): ArquivoSalvo {
         val conteudo = temporarios.remove(temporario.caminho) ?: error("Temporário inexistente")
-        val caminho = "$pasta/$nomeDoArquivo"
+        val nomeUsado = if ("$pasta/$nomeDoArquivo" in ocultos) {
+            nomeDoArquivo.substringBeforeLast('.') + " (1)." + nomeDoArquivo.substringAfterLast('.')
+        } else {
+            nomeDoArquivo
+        }
+        val caminho = "$pasta/$nomeUsado"
         check(caminho !in arquivos) { "Arquivo já existe: $caminho" }
         arquivos[caminho] = conteudo
-        return caminho
+        return ArquivoSalvo(caminho, nomeUsado)
     }
 
-    override fun renomear(caminho: String, novoNomeDoArquivo: String): String {
+    override fun renomear(caminho: String, novoNomeDoArquivo: String): ArquivoSalvo {
         val conteudo = arquivos.remove(caminho) ?: error("Arquivo inexistente: $caminho")
         val novo = caminho.substringBeforeLast('/') + "/" + novoNomeDoArquivo
         check(novo !in arquivos) { "Arquivo já existe: $novo" }
         arquivos[novo] = conteudo
-        return novo
+        return ArquivoSalvo(novo, novoNomeDoArquivo)
     }
 
     var espacoLivre = Long.MAX_VALUE
