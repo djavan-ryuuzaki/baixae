@@ -213,7 +213,7 @@ fun ConfiguracoesTela(dependencias: Dependencias, modifier: Modifier = Modifier)
 
 @Composable
 private fun rotuloDaQualidade(limite: LimiteDeQualidade): String =
-    limite.alturaMaxima?.let { stringResource(R.string.qualidade_ate, it) } ?: stringResource(R.string.qualidade_maxima)
+    limite.resolucaoMaxima?.let { stringResource(R.string.qualidade_ate, it) } ?: stringResource(R.string.qualidade_maxima)
 
 /** Diálogo para escolher uma Pasta de destino, validada pelas regras do núcleo. */
 @Composable

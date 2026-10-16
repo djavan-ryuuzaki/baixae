@@ -44,11 +44,11 @@ class ExtratorYoutubeDl(private val context: Context) : Extrator {
     override suspend fun obterPost(link: String, limite: LimiteDeQualidade): Post {
         garantirInicializado()
         val json = try {
-            lerMetadados(link, formato(limite))
+            lerMetadados(link, limite)
         } catch (falha: FalhaDoExtrator) {
             // Mídias sem formato compatível (ex.: fotos de um carrossel) fazem a seleção falhar; sem ela, o tamanho fica desconhecido.
             if (falha.tipo != TipoDeFalha.PLATAFORMA_MUDOU && falha.tipo != TipoDeFalha.OUTRO) throw falha
-            lerMetadados(link, formato = null)
+            lerMetadados(link, limite = null)
         }
         val entradas = json.optJSONArray("entries")
         val midias = if (entradas == null) {
@@ -77,8 +77,7 @@ class ExtratorYoutubeDl(private val context: Context) : Extrator {
         garantirInicializado()
         val arquivoFinal = File(destino.caminho)
         val pedido = YoutubeDLRequest(link).apply {
-            addOption("-f", formato(limite))
-            addOption("-S", "vcodec:h264,res,acodec:m4a")
+            escolherQualidade(limite)
             addOption("--merge-output-format", "mp4")
             addOption("--remux-video", "mp4")
             addOption("--no-playlist")
@@ -91,20 +90,25 @@ class ExtratorYoutubeDl(private val context: Context) : Extrator {
         if (!arquivoFinal.exists()) error("O Extrator não gerou o arquivo esperado")
     }
 
-    private suspend fun lerMetadados(link: String, formato: String?): JSONObject {
+    private suspend fun lerMetadados(link: String, limite: LimiteDeQualidade?): JSONObject {
         val pedido = YoutubeDLRequest(link).apply {
             addOption("--dump-single-json")
-            if (formato != null) addOption("-f", formato)
+            if (limite != null) escolherQualidade(limite)
             addOption("--no-playlist")
             addOption("--no-warnings")
         }
         return JSONObject(executar(pedido) {}.out)
     }
 
-    /** Melhor vídeo até a altura do limite; se não houver nenhum assim, o melhor disponível. */
-    private fun formato(limite: LimiteDeQualidade): String {
-        val altura = limite.alturaMaxima ?: return "bv*+ba/b"
-        return "bv*[height<=$altura]+ba/b[height<=$altura]/bv*+ba/b"
+    /**
+     * Melhor vídeo cuja resolução (o lado menor, campo `res` do yt-dlp) não passa do limite; sem nenhum assim,
+     * o mais próximo. Usar o lado menor faz um Reel vertical 1080×1920 contar como 1080p, e não como 1920p.
+     * Entre resoluções iguais, prefere H.264 e áudio AAC, que tocam e são aceitos em mais apps.
+     */
+    private fun YoutubeDLRequest.escolherQualidade(limite: LimiteDeQualidade) {
+        addOption("-f", "bv*+ba/b")
+        val resolucao = limite.resolucaoMaxima?.let { "res:$it" } ?: "res"
+        addOption("-S", "$resolucao,vcodec:h264,acodec:m4a")
     }
 
     /** Executa o yt-dlp; o cancelamento da coroutine encerra o processo. */

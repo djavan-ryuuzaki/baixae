@@ -9,7 +9,9 @@ class ClassificadorDeFalhasTest {
     fun `mensagens tipicas do yt-dlp viram o tipo de falha certo`() {
         val casos = mapOf(
             "ERROR: [youtube] abc: Sign in to confirm your age. This video may be inappropriate for some users." to TipoDeFalha.EXIGE_LOGIN,
-            "ERROR: [Instagram] C1: Requested content is not available, rate-limit reached or login required" to TipoDeFalha.EXIGE_LOGIN,
+            // Ambígua: o yt-dlp desatualizado diz isso até para Reels públicos. Atualizar e tentar de novo é o que resolve.
+            "ERROR: [Instagram] DekctOWzeZx: Requested content is not available, rate-limit reached or login required. Use --cookies-from-browser or --cookies for the authentication." to TipoDeFalha.PLATAFORMA_MUDOU,
+            "ERROR: [Instagram] C1: This content isn't available because the account is private" to TipoDeFalha.EXIGE_LOGIN,
             "ERROR: [youtube] abc: Private video. Sign in if you've been granted access" to TipoDeFalha.EXIGE_LOGIN,
             "ERROR: Unable to download webpage: <urlopen error [Errno 7] No address associated with hostname>" to TipoDeFalha.SEM_REDE,
             "ERROR: unable to write data: [Errno 28] No space left on device" to TipoDeFalha.SEM_ESPACO,

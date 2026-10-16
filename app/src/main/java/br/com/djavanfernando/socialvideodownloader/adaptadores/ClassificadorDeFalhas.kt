@@ -17,8 +17,13 @@ object ClassificadorDeFalhas {
         "inappropriate for some users",
         "members-only",
         "join this channel",
-        "requested content is not available",
     )
+
+    /**
+     * Mensagem do Instagram que o yt-dlp usa tanto para Post privado quanto para extrator desatualizado
+     * (acontece com Reels públicos). Atualizar e tentar de novo resolve o segundo caso e é inofensivo no primeiro.
+     */
+    private val ambiguaDoInstagram = "rate-limit reached or login required"
     private val semRede = listOf(
         "failed to resolve",
         "temporary failure in name resolution",
@@ -54,6 +59,7 @@ object ClassificadorDeFalhas {
             semEspaco.any(texto::contains) -> TipoDeFalha.SEM_ESPACO
             semRede.any(texto::contains) -> TipoDeFalha.SEM_REDE
             bloqueioTemporario.any(texto::contains) -> TipoDeFalha.OUTRO
+            ambiguaDoInstagram in texto -> TipoDeFalha.PLATAFORMA_MUDOU
             exigeLogin.any(texto::contains) -> TipoDeFalha.EXIGE_LOGIN
             plataformaMudou.any(texto::contains) -> TipoDeFalha.PLATAFORMA_MUDOU
             else -> TipoDeFalha.OUTRO

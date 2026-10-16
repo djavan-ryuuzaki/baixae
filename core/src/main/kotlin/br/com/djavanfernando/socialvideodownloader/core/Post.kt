@@ -17,8 +17,11 @@ data class MidiaDoPost(
 
 enum class TipoDeMidia { VIDEO, FOTO }
 
-/** Altura máxima do vídeo a baixar; `null` significa a melhor disponível. */
-enum class LimiteDeQualidade(val alturaMaxima: Int?) {
+/**
+ * Resolução máxima do vídeo a baixar, medida no lado menor (assim 1080p vale para 1920×1080 e para 1080×1920);
+ * `null` significa a melhor disponível.
+ */
+enum class LimiteDeQualidade(val resolucaoMaxima: Int?) {
     P480(480),
     P720(720),
     P1080(1080),

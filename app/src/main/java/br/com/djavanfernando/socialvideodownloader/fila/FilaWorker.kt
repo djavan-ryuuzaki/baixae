@@ -47,12 +47,25 @@ class FilaWorker(context: Context, parametros: WorkerParameters) : CoroutineWork
                     }
                 }
             }
+            atualizarExtratoresSeVencidos()
             fila.processar()
             notificador.cancel()
         }
         if (fila.haDownloadsAguardandoRede()) AgendadorDaFila.esperarRede(applicationContext, fila.exigeWifi())
         Notificacoes.avisarConclusao(applicationContext, (concluidos() - concluidosAntes).size)
         return Result.success()
+    }
+
+    /**
+     * O yt-dlp embutido no APK envelhece rápido (o Instagram, por exemplo, para de funcionar com versões antigas).
+     * Antes de baixar, atualiza os Extratores se a última verificação passou de uma semana ou nunca aconteceu.
+     */
+    private suspend fun atualizarExtratoresSeVencidos() {
+        try {
+            dependencias.extratores.verificacaoSemanal()
+        } catch (_: Exception) {
+            // Sem rede ou GitHub fora do ar: baixa com a versão atual; a falha, se houver, aparece no Download.
+        }
     }
 
     private suspend fun concluidos(): Set<String> =

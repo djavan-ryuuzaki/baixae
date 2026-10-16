@@ -17,3 +17,4 @@
 - Núcleo: o limite das Configurações vai para `obterPost` e `baixar`; antes do primeiro vídeo, o `Baixador` compara o dobro do tamanho estimado (temporário + cópia na Pasta de destino) com o espaço livre e falha com `SEM_ESPACO`. Tamanho desconhecido não bloqueia. Nenhum limite de duração.
 - Adaptador: o tamanho estimado já considera o limite (`-f` no `--dump-single-json`, com nova leitura sem `-f` se a seleção falhar, ex.: fotos de carrossel). Espaço livre = menor entre cache e armazenamento compartilhado.
 - Verificado no emulador: com "Até 480p", um vídeo com versão 4K foi salvo em 854×480. A checagem de espaço foi verificada só por testes.
+- Correção: o limite era aplicado à altura, o que rebaixava vídeos verticais (um Reel 1080×1920 saía em 540×960 com "1080p"). Agora vale o lado menor (`-S res:N` do yt-dlp): o Reel sai em 1080×1920 e o vídeo 4K com "Até 480p" continua em 854×480.
