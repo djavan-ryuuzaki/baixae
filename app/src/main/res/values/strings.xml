@@ -70,4 +70,17 @@
     <string name="repetido_texto">“%1$s” está na Biblioteca %2$s.</string>
     <string name="repetido_abrir">Abrir</string>
     <string name="repetido_baixar_de_novo">Baixar de novo</string>
+    <string name="biblioteca_nova">Nova Biblioteca</string>
+    <string name="biblioteca_renomear">Renomear Biblioteca</string>
+    <string name="biblioteca_apagar">Apagar</string>
+    <string name="biblioteca_apagar_titulo">Apagar a Biblioteca %1$s?</string>
+    <string name="biblioteca_apagar_texto">Os Vídeos dela voltam para a Biblioteca padrão da Plataforma de origem. Nenhum arquivo é apagado.</string>
+    <string name="erro_biblioteca_ja_existe">Já existe uma Biblioteca com esse nome.</string>
+    <string name="mover">Mover</string>
+    <string name="mover_para">Mover para…</string>
+    <string name="filtro_todas">Todas</string>
+    <plurals name="selecionados">
+        <item quantity="one">%d selecionado</item>
+        <item quantity="other">%d selecionados</item>
+    </plurals>
 </resources>

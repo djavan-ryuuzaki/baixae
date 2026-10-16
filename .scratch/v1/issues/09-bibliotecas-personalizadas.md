@@ -4,12 +4,18 @@
 
 **Blocked by:** 03
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Criar Biblioteca personalizada com nome; nomes repetidos são recusados
-- [ ] Renomear Biblioteca personalizada; Bibliotecas padrão não oferecem renomear nem apagar
-- [ ] Selecionar vários Vídeos por toque longo e movê-los para outra Biblioteca
-- [ ] Mover não altera o caminho do arquivo
-- [ ] Apagar Biblioteca personalizada devolve cada Vídeo à Biblioteca padrão da sua Plataforma
-- [ ] Filtro por Plataforma de origem funciona dentro de qualquer Biblioteca
-- [ ] Testes do núcleo cobrem mover, apagar e proteção das Bibliotecas padrão
+- [x] Criar Biblioteca personalizada com nome; nomes repetidos são recusados
+- [x] Renomear Biblioteca personalizada; Bibliotecas padrão não oferecem renomear nem apagar
+- [x] Selecionar vários Vídeos por toque longo e movê-los para outra Biblioteca
+- [x] Mover não altera o caminho do arquivo
+- [x] Apagar Biblioteca personalizada devolve cada Vídeo à Biblioteca padrão da sua Plataforma
+- [x] Filtro por Plataforma de origem funciona dentro de qualquer Biblioteca
+- [x] Testes do núcleo cobrem mover, apagar e proteção das Bibliotecas padrão
+
+## Comments
+
+- Núcleo: `Acervo.criarBiblioteca/renomearBiblioteca/apagarBiblioteca/mover` e `videosDa(biblioteca, plataforma)`. Nomes de Biblioteca são únicos sem diferenciar maiúsculas (inclusive em relação às padrão).
+- Interface: "+" na grade cria; Bibliotecas personalizadas mostram Renomear/Apagar (padrão não mostram); toque longo seleciona, "Mover" abre a lista de destinos; chips de Plataforma aparecem quando a Biblioteca tem Vídeos de mais de uma.
+- Verificado no emulador: criar "Receitas", mover 2 Vídeos do YouTube, apagar "Receitas" → YouTube volta a ter 5.
