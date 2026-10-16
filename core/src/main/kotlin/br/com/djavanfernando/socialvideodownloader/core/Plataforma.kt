@@ -26,6 +26,10 @@ enum class Plataforma(
 
         /** Primeiro Link (http/https) contido num texto, como o enviado pelo menu Compartilhar. */
         fun extrairLink(texto: String): String? = padraoDeLink.find(texto)?.value?.trimEnd('.', ',', ')', '!', '?')
+
+        /** Link a sugerir para Download a partir do texto da área de transferência, se for de uma Plataforma. */
+        fun sugestaoDeDownload(texto: String?): String? =
+            texto?.let(::extrairLink)?.takeIf { reconhecer(it) != null }
     }
 }
 

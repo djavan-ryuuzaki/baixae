@@ -41,6 +41,7 @@ import br.com.djavanfernando.socialvideodownloader.R
 import br.com.djavanfernando.socialvideodownloader.core.EstadoNaFila
 import br.com.djavanfernando.socialvideodownloader.core.ItemDaFila
 import br.com.djavanfernando.socialvideodownloader.core.LinkNaoSuportado
+import br.com.djavanfernando.socialvideodownloader.core.LinkRepetido
 import br.com.djavanfernando.socialvideodownloader.core.Plataforma
 import br.com.djavanfernando.socialvideodownloader.fila.AgendadorDaFila
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,6 +60,7 @@ class BaixarViewModel(
     private val iniciarFila: () -> Unit,
 ) : ViewModel() {
     private val fila = dependencias.fila
+    private val acervo = dependencias.acervo
     val link = MutableStateFlow("")
 
     /** Pasta de destino escolhida só para o próximo Download; `null` usa a padrão. */
@@ -66,6 +68,12 @@ class BaixarViewModel(
     val pastaPadrao = dependencias.preferencias.observar().map { it.pastaPadrao }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
     val aviso = MutableStateFlow<Aviso?>(null)
+
+    /** Link copiado sugerido para Download ("Baixar o Link copiado?"). */
+    val sugestao = MutableStateFlow<String?>(null)
+
+    /** Pedido de Download de um Link já baixado, aguardando o usuário escolher Abrir ou Baixar de novo. */
+    val repetido = MutableStateFlow<Pair<String, LinkRepetido>?>(null)
     val itens = dependencias.repositorio.observarFila()
         .map { lista -> lista.sortedByDescending(ItemDaFila::criadoEm) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -74,17 +82,55 @@ class BaixarViewModel(
     fun baixar() {
         val texto = link.value.trim()
         if (texto.isEmpty()) return
-        val alvo = Plataforma.extrairLink(texto) ?: texto
+        pedir(Plataforma.extrairLink(texto) ?: texto)
+    }
+
+    fun baixarSugestao() {
+        val alvo = sugestao.value ?: return
+        sugestao.value = null
+        pedir(alvo)
+    }
+
+    fun dispensarSugestao() {
+        sugestao.value = null
+    }
+
+    /** Chamado com o texto da área de transferência quando ele muda e o app está em primeiro plano. */
+    fun areaDeTransferenciaMudou(texto: String?) {
+        sugestao.value = Plataforma.sugestaoDeDownload(texto)
+    }
+
+    fun baixarDeNovo() {
+        val (alvo, _) = repetido.value ?: return
+        repetido.value = null
+        viewModelScope.launch { enfileirar(alvo) }
+    }
+
+    fun dispensarRepetido() {
+        repetido.value = null
+    }
+
+    private fun pedir(alvo: String) {
         viewModelScope.launch {
-            aviso.value = try {
-                fila.enfileirar(alvo, pastaDoProximo.value)
-                iniciarFila()
-                link.value = ""
-                pastaDoProximo.value = null
-                Aviso.AdicionadoAFila
-            } catch (_: LinkNaoSuportado) {
-                Aviso.LinkRecusado
+            val anterior = acervo.downloadAnterior(alvo)
+            if (anterior != null) {
+                aviso.value = null
+                repetido.value = alvo to anterior
+            } else {
+                enfileirar(alvo)
             }
+        }
+    }
+
+    private suspend fun enfileirar(alvo: String) {
+        aviso.value = try {
+            fila.enfileirar(alvo, pastaDoProximo.value)
+            iniciarFila()
+            link.value = ""
+            pastaDoProximo.value = null
+            Aviso.AdicionadoAFila
+        } catch (_: LinkNaoSuportado) {
+            Aviso.LinkRecusado
         }
     }
 
@@ -104,11 +150,28 @@ fun BaixarTela(dependencias: Dependencias, navegacao: Navegacao, modifier: Modif
     val pastaDoProximo by viewModel.pastaDoProximo.collectAsStateWithLifecycle()
     val pastaPadrao by viewModel.pastaPadrao.collectAsStateWithLifecycle()
     var trocandoPasta by rememberSaveable { mutableStateOf(false) }
+    val sugestao by viewModel.sugestao.collectAsStateWithLifecycle()
+    val repetido by viewModel.repetido.collectAsStateWithLifecycle()
+    ObservarAreaDeTransferencia(viewModel::areaDeTransferenciaMudou)
 
     Column(
         modifier.fillMaxSize().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        sugestao?.let { copiado ->
+            SugestaoDeLinkCopiado(copiado, aoBaixar = viewModel::baixarSugestao, aoDispensar = viewModel::dispensarSugestao)
+        }
+        repetido?.let { (_, anterior) ->
+            DialogoDeLinkRepetido(
+                anterior = anterior,
+                aoAbrir = {
+                    viewModel.dispensarRepetido()
+                    navegacao.abrirVideo(anterior.video.id)
+                },
+                aoBaixarDeNovo = viewModel::baixarDeNovo,
+                aoDispensar = viewModel::dispensarRepetido,
+            )
+        }
         OutlinedTextField(
             value = link,
             onValueChange = {

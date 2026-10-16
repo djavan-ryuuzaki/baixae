@@ -64,4 +64,10 @@
     <string name="baixar_pasta">Salvar em: %1$s</string>
     <string name="baixar_trocar_pasta">Trocar</string>
     <string name="baixar_pasta_so_deste">Pasta só para este Download</string>
+    <string name="sugestao_titulo">Baixar o Link copiado?</string>
+    <string name="sugestao_dispensar">Agora não</string>
+    <string name="repetido_titulo">Você já baixou isto</string>
+    <string name="repetido_texto">“%1$s” está na Biblioteca %2$s.</string>
+    <string name="repetido_abrir">Abrir</string>
+    <string name="repetido_baixar_de_novo">Baixar de novo</string>
 </resources>

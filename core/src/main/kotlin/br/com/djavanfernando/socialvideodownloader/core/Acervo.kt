@@ -24,6 +24,16 @@ class Acervo(
     suspend fun videosDa(bibliotecaId: String): List<Video> =
         repositorio.videos().filter { it.bibliotecaId == bibliotecaId }
 
+    /** Vídeo já baixado do mesmo Link (o mais recente), com a Biblioteca onde ele está agora. */
+    suspend fun downloadAnterior(link: String): LinkRepetido? {
+        val chave = ChaveDoLink.de(link)
+        val video = repositorio.videos()
+            .filter { ChaveDoLink.de(it.link) == chave }
+            .maxByOrNull { it.dataDoDownload } ?: return null
+        val biblioteca = repositorio.bibliotecas().firstOrNull { it.id == video.bibliotecaId } ?: return null
+        return LinkRepetido(video, biblioteca)
+    }
+
     /** Renomeia o Vídeo e o arquivo no celular; recusa nomes vazios ou já existentes na pasta. */
     suspend fun renomear(videoId: String, novoNome: String): Video {
         val video = repositorio.video(videoId) ?: throw VideoNaoEncontrado(videoId)
@@ -36,6 +46,8 @@ class Acervo(
         return video.copy(nome = nome, caminhoDoArquivo = caminho).also { repositorio.salvarVideo(it) }
     }
 }
+
+data class LinkRepetido(val video: Video, val biblioteca: Biblioteca)
 
 class VideoNaoEncontrado(id: String) : NoSuchElementException("Vídeo não encontrado: $id")
 
