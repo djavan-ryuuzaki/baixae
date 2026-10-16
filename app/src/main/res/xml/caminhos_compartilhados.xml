@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Cópias temporárias (ex.: com Marca d'água) enviadas a outros apps pelo Compartilhamento. -->
+<paths>
+    <cache-path name="compartilhar" path="compartilhar/" />
+</paths>

@@ -16,6 +16,7 @@ import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -48,6 +49,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import br.com.djavanfernando.socialvideodownloader.Dependencias
 import br.com.djavanfernando.socialvideodownloader.R
+import br.com.djavanfernando.socialvideodownloader.core.ArquivoAusente
 import br.com.djavanfernando.socialvideodownloader.core.NomeInvalido
 import br.com.djavanfernando.socialvideodownloader.core.NomeJaExiste
 import br.com.djavanfernando.socialvideodownloader.core.Video
@@ -58,6 +60,7 @@ import kotlinx.coroutines.launch
 
 class VideoViewModel(dependencias: Dependencias, private val videoId: String) : ViewModel() {
     private val acervo = dependencias.acervo
+    private val compartilhamento = dependencias.compartilhamento
 
     val video = dependencias.repositorio.observarVideos()
         .map { lista -> lista.firstOrNull { it.id == videoId } }
@@ -69,6 +72,14 @@ class VideoViewModel(dependencias: Dependencias, private val videoId: String) : 
 
     suspend fun renomear(nome: String) {
         acervo.renomear(videoId, nome)
+    }
+
+    /** Prepara o arquivo do Compartilhamento e o entrega a [enviar]; Arquivo ausente só atualiza a tela. */
+    fun compartilhar(enviar: (String) -> Unit) = viewModelScope.launch {
+        try {
+            enviar(compartilhamento.preparar(videoId).caminho)
+        } catch (_: ArquivoAusente) {
+        }
     }
 
     fun apagar(apagarArquivo: Boolean, depois: () -> Unit) = viewModelScope.launch {
@@ -85,6 +96,7 @@ fun VideoTela(dependencias: Dependencias, videoId: String, aoVoltar: () -> Unit)
     var renomeando by rememberSaveable { mutableStateOf(false) }
     var apagando by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(videoId) { viewModel.verificarArquivo() }
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -112,6 +124,7 @@ fun VideoTela(dependencias: Dependencias, videoId: String, aoVoltar: () -> Unit)
         DetalhesDoVideo(
             atual,
             aoRemover = { viewModel.apagar(apagarArquivo = false, depois = aoVoltar) },
+            aoCompartilhar = { viewModel.compartilhar(context::compartilhar) },
             modifier = Modifier.padding(margens),
         )
         if (renomeando) {
@@ -179,7 +192,12 @@ private fun DialogoDeApagar(video: Video, aoConfirmar: (Boolean) -> Unit, aoDisp
 }
 
 @Composable
-private fun DetalhesDoVideo(video: Video, aoRemover: () -> Unit, modifier: Modifier = Modifier) {
+private fun DetalhesDoVideo(
+    video: Video,
+    aoRemover: () -> Unit,
+    aoCompartilhar: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val context = LocalContext.current
     Column(
         modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -201,6 +219,10 @@ private fun DetalhesDoVideo(video: Video, aoRemover: () -> Unit, modifier: Modif
             Button(onClick = { context.reproduzir(video) }, modifier = Modifier.fillMaxWidth()) {
                 Icon(Icons.Filled.PlayArrow, contentDescription = null)
                 Text(stringResource(R.string.video_reproduzir))
+            }
+            OutlinedButton(onClick = aoCompartilhar, modifier = Modifier.fillMaxWidth()) {
+                Icon(Icons.Filled.Share, contentDescription = null)
+                Text(stringResource(R.string.video_compartilhar))
             }
         }
         OutlinedButton(onClick = { context.abrirOriginal(video) }, modifier = Modifier.fillMaxWidth()) {

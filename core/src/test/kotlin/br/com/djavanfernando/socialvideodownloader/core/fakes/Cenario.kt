@@ -2,6 +2,7 @@ package br.com.djavanfernando.socialvideodownloader.core.fakes
 
 import br.com.djavanfernando.socialvideodownloader.core.Acervo
 import br.com.djavanfernando.socialvideodownloader.core.Baixador
+import br.com.djavanfernando.socialvideodownloader.core.Compartilhamento
 import br.com.djavanfernando.socialvideodownloader.core.FilaDeDownloads
 
 /** Núcleo montado com todos os fakes, para testes que atravessam vários serviços. */
@@ -14,5 +15,6 @@ class Cenario {
     val preferencias = PreferenciasEmMemoria()
     val acervo = Acervo(repositorio, armazenamento)
     val baixador = Baixador(extrator, armazenamento, repositorio, relogio)
+    val compartilhamento = Compartilhamento(repositorio, armazenamento)
     val fila = FilaDeDownloads(repositorio, baixador, conectividade, preferencias, relogio)
 }
