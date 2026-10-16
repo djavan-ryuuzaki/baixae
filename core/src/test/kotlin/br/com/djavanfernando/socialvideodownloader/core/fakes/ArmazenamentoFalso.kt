@@ -38,4 +38,10 @@ class ArmazenamentoFalso : ArmazenamentoDeArquivos {
         arquivos[novo] = conteudo
         return novo
     }
+
+    override fun existe(caminho: String): Boolean = caminho in arquivos
+
+    override fun apagar(caminho: String) {
+        arquivos.remove(caminho)
+    }
 }

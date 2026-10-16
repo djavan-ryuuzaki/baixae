@@ -14,4 +14,9 @@ interface ArmazenamentoDeArquivos {
 
     /** Renomeia o arquivo dentro da mesma pasta e devolve o novo caminho. */
     fun renomear(caminho: String, novoNomeDoArquivo: String): String
+
+    fun existe(caminho: String): Boolean
+
+    /** Apaga o arquivo; não falha se ele já não existir. */
+    fun apagar(caminho: String)
 }

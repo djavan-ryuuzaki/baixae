@@ -16,6 +16,8 @@ data class Video(
     val pasta: String,
     val caminhoDoArquivo: String,
     val bibliotecaId: String,
+    /** O arquivo foi apagado ou movido fora do app. */
+    val arquivoAusente: Boolean = false,
 ) {
     val nomeDoArquivo: String get() = "$nome.$EXTENSAO"
 

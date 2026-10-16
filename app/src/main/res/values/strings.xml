@@ -83,4 +83,11 @@
         <item quantity="one">%d selecionado</item>
         <item quantity="other">%d selecionados</item>
     </plurals>
+    <string name="video_apagar">Apagar</string>
+    <string name="video_apagar_titulo">Apagar este Vídeo?</string>
+    <string name="video_apagar_arquivo">Apagar também o arquivo do celular</string>
+    <string name="video_pasta">Pasta</string>
+    <string name="arquivo_ausente">Arquivo ausente</string>
+    <string name="arquivo_ausente_texto">O arquivo deste Vídeo foi apagado ou movido fora do app.</string>
+    <string name="arquivo_ausente_remover">Remover da Biblioteca</string>
 </resources>

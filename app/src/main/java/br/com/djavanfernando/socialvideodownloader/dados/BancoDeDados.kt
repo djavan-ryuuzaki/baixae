@@ -32,6 +32,7 @@ data class VideoEntidade(
     val pasta: String,
     val caminhoDoArquivo: String,
     val bibliotecaId: String,
+    val arquivoAusente: Boolean,
 ) {
     fun paraVideo() = Video(
         id = id,
@@ -46,6 +47,7 @@ data class VideoEntidade(
         pasta = pasta,
         caminhoDoArquivo = caminhoDoArquivo,
         bibliotecaId = bibliotecaId,
+        arquivoAusente = arquivoAusente,
     )
 
     companion object {
@@ -62,6 +64,7 @@ data class VideoEntidade(
             pasta = video.pasta,
             caminhoDoArquivo = video.caminhoDoArquivo,
             bibliotecaId = video.bibliotecaId,
+            arquivoAusente = video.arquivoAusente,
         )
     }
 }

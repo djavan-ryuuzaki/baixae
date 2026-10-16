@@ -9,6 +9,7 @@ import android.provider.MediaStore
 import br.com.djavanfernando.socialvideodownloader.core.portas.ArmazenamentoDeArquivos
 import br.com.djavanfernando.socialvideodownloader.core.portas.ArquivoTemporario
 import java.io.File
+import java.io.FileNotFoundException
 import java.util.UUID
 
 /**
@@ -72,6 +73,27 @@ class ArmazenamentoMediaStore(private val context: Context) : ArmazenamentoDeArq
             check(resolver.update(uri, valores, null, null) > 0) { "Não foi possível renomear o arquivo" }
         }
         return caminho
+    }
+
+    override fun existe(caminho: String): Boolean {
+        val uri = Uri.parse(caminho)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return caminhoReal(uri)?.let { File(it).exists() } == true
+        // Abrir o arquivo (e não só consultar a linha do MediaStore) detecta também arquivos apagados por fora.
+        return try {
+            resolver.openFileDescriptor(uri, "r")?.use { true } == true
+        } catch (_: FileNotFoundException) {
+            false
+        } catch (_: SecurityException) {
+            false
+        } catch (_: IllegalArgumentException) {
+            false
+        }
+    }
+
+    override fun apagar(caminho: String) {
+        val uri = Uri.parse(caminho)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) caminhoReal(uri)?.let { File(it).delete() }
+        resolver.delete(uri, null, null)
     }
 
     @Suppress("DEPRECATION")

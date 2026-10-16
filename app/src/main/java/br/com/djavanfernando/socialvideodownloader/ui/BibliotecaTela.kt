@@ -32,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -87,6 +88,8 @@ class BibliotecaViewModel(private val dependencias: Dependencias, private val bi
         lista.filter { plataforma == null || it.plataforma == plataforma }.sortedByDescending(Video::dataDoDownload)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    fun verificarArquivos() = viewModelScope.launch { acervo.verificarArquivos(bibliotecaId) }
+
     fun alternarSelecao(id: String) = selecionados.update { if (id in it) it - id else it + id }
 
     fun limparSelecao() {
@@ -128,6 +131,7 @@ fun BibliotecaTela(
     var apagando by rememberSaveable { mutableStateOf(false) }
     var movendo by rememberSaveable { mutableStateOf(false) }
     BackHandler(enabled = selecionados.isNotEmpty(), onBack = viewModel::limparSelecao)
+    LaunchedEffect(bibliotecaId) { viewModel.verificarArquivos() }
 
     Column(modifier.fillMaxSize()) {
         if (selecionados.isEmpty()) {
@@ -195,7 +199,11 @@ fun BibliotecaTela(
                             onLongClick = { viewModel.alternarSelecao(video.id) },
                         )
                         .then(if (selecionado) Modifier.background(MaterialTheme.colorScheme.secondaryContainer) else Modifier),
-                )
+                ) {
+                    if (video.arquivoAusente) {
+                        Text(stringResource(R.string.arquivo_ausente), color = MaterialTheme.colorScheme.error)
+                    }
+                }
             }
         }
     }

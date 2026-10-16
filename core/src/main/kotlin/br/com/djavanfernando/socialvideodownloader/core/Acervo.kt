@@ -50,6 +50,21 @@ class Acervo(
         return video.copy(nome = nome, caminhoDoArquivo = caminho).also { repositorio.salvarVideo(it) }
     }
 
+    /** Tira o Vídeo do app e, se pedido, apaga também o arquivo do celular. */
+    suspend fun apagarVideo(videoId: String, apagarArquivo: Boolean) {
+        val video = repositorio.video(videoId) ?: return
+        if (apagarArquivo) armazenamento.apagar(video.caminhoDoArquivo)
+        repositorio.removerVideo(videoId)
+    }
+
+    /** Confere os arquivos dos Vídeos da Biblioteca e marca (ou desmarca) os que estão como Arquivo ausente. */
+    suspend fun verificarArquivos(bibliotecaId: String) {
+        repositorio.videos().filter { it.bibliotecaId == bibliotecaId }.forEach { video ->
+            val ausente = !armazenamento.existe(video.caminhoDoArquivo)
+            if (ausente != video.arquivoAusente) repositorio.salvarVideo(video.copy(arquivoAusente = ausente))
+        }
+    }
+
     suspend fun criarBiblioteca(nome: String): Biblioteca {
         val limpo = nomeDeBibliotecaLivre(nome, ignorar = null)
         return Biblioteca(UUID.randomUUID().toString(), limpo).also { repositorio.salvarBiblioteca(it) }
