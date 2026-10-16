@@ -44,6 +44,7 @@ class ExtratorYoutubeDl(private val context: Context) : Extrator {
         garantirInicializado()
         val pedido = YoutubeDLRequest(link).apply {
             addOption("--dump-single-json")
+            addOption("--no-playlist")
             addOption("--no-warnings")
         }
         val json = JSONObject(executar(pedido) { _ -> }.out)
@@ -84,6 +85,7 @@ class ExtratorYoutubeDl(private val context: Context) : Extrator {
             addOption("-S", "vcodec:h264,res,acodec:m4a")
             addOption("--merge-output-format", "mp4")
             addOption("--remux-video", "mp4")
+            addOption("--no-playlist")
             addOption("--playlist-items", (indice + 1).toString())
             addOption("--no-mtime")
             addOption("--no-warnings")
