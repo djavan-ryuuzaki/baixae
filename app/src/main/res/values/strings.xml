@@ -51,4 +51,17 @@
     <string name="config_so_wifi_descricao">Downloads esperam até haver uma rede Wi-Fi.</string>
     <string name="compartilhar_rotulo">Baixar vídeo</string>
     <string name="compartilhar_recusado">Link não suportado. Plataformas suportadas: %1$s</string>
+    <string name="confirmar">OK</string>
+    <string name="cancelar">Cancelar</string>
+    <string name="video_renomear">Renomear</string>
+    <string name="video_nome">Nome</string>
+    <string name="erro_nome_ja_existe">Já existe um arquivo com esse nome nesta pasta.</string>
+    <string name="erro_nome_invalido">Digite um nome válido.</string>
+    <string name="config_pasta_padrao">Pasta de destino padrão</string>
+    <string name="pasta_rotulo">Pasta</string>
+    <string name="pasta_ajuda">Começa com %1$s. Ex.: Movies/SocialVideoDownloader</string>
+    <string name="erro_pasta_invalida">A pasta precisa começar com %1$s.</string>
+    <string name="baixar_pasta">Salvar em: %1$s</string>
+    <string name="baixar_trocar_pasta">Trocar</string>
+    <string name="baixar_pasta_so_deste">Pasta só para este Download</string>
 </resources>

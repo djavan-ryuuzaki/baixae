@@ -30,4 +30,12 @@ class ArmazenamentoFalso : ArmazenamentoDeArquivos {
         arquivos[caminho] = conteudo
         return caminho
     }
+
+    override fun renomear(caminho: String, novoNomeDoArquivo: String): String {
+        val conteudo = arquivos.remove(caminho) ?: error("Arquivo inexistente: $caminho")
+        val novo = caminho.substringBeforeLast('/') + "/" + novoNomeDoArquivo
+        check(novo !in arquivos) { "Arquivo já existe: $novo" }
+        arquivos[novo] = conteudo
+        return novo
+    }
 }

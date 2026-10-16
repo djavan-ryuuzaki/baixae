@@ -11,4 +11,7 @@ interface ArmazenamentoDeArquivos {
 
     /** Move o temporário para a Pasta de destino e devolve o caminho do arquivo salvo. */
     fun salvar(temporario: ArquivoTemporario, pasta: String, nomeDoArquivo: String): String
+
+    /** Renomeia o arquivo dentro da mesma pasta e devolve o novo caminho. */
+    fun renomear(caminho: String, novoNomeDoArquivo: String): String
 }

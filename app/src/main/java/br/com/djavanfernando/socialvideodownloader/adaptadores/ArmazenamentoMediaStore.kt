@@ -51,6 +51,35 @@ class ArmazenamentoMediaStore(private val context: Context) : ArmazenamentoDeArq
         return uri.toString()
     }
 
+    override fun renomear(caminho: String, novoNomeDoArquivo: String): String {
+        val uri = Uri.parse(caminho)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            val atual = File(caminhoReal(uri) ?: error("Arquivo não encontrado"))
+            val novo = File(atual.parentFile, novoNomeDoArquivo)
+            check(atual.renameTo(novo)) { "Não foi possível renomear o arquivo" }
+            @Suppress("DEPRECATION")
+            resolver.update(
+                uri,
+                ContentValues().apply {
+                    put(MediaStore.MediaColumns.DATA, novo.absolutePath)
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, novoNomeDoArquivo)
+                },
+                null,
+                null,
+            )
+        } else {
+            val valores = ContentValues().apply { put(MediaStore.MediaColumns.DISPLAY_NAME, novoNomeDoArquivo) }
+            check(resolver.update(uri, valores, null, null) > 0) { "Não foi possível renomear o arquivo" }
+        }
+        return caminho
+    }
+
+    @Suppress("DEPRECATION")
+    private fun caminhoReal(uri: Uri): String? =
+        resolver.query(uri, arrayOf(MediaStore.MediaColumns.DATA), null, null, null)?.use {
+            if (it.moveToFirst()) it.getString(0) else null
+        }
+
     private fun salvarComMediaStore(origem: File, pasta: String, nomeDoArquivo: String): Uri {
         val valores = ContentValues().apply {
             put(MediaStore.MediaColumns.DISPLAY_NAME, nomeDoArquivo)

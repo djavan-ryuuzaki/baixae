@@ -3,6 +3,7 @@ package br.com.djavanfernando.socialvideodownloader.ui
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,8 +20,13 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -54,6 +60,11 @@ class BaixarViewModel(
 ) : ViewModel() {
     private val fila = dependencias.fila
     val link = MutableStateFlow("")
+
+    /** Pasta de destino escolhida só para o próximo Download; `null` usa a padrão. */
+    val pastaDoProximo = MutableStateFlow<String?>(null)
+    val pastaPadrao = dependencias.preferencias.observar().map { it.pastaPadrao }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
     val aviso = MutableStateFlow<Aviso?>(null)
     val itens = dependencias.repositorio.observarFila()
         .map { lista -> lista.sortedByDescending(ItemDaFila::criadoEm) }
@@ -66,9 +77,10 @@ class BaixarViewModel(
         val alvo = Plataforma.extrairLink(texto) ?: texto
         viewModelScope.launch {
             aviso.value = try {
-                fila.enfileirar(alvo)
+                fila.enfileirar(alvo, pastaDoProximo.value)
                 iniciarFila()
                 link.value = ""
+                pastaDoProximo.value = null
                 Aviso.AdicionadoAFila
             } catch (_: LinkNaoSuportado) {
                 Aviso.LinkRecusado
@@ -89,6 +101,9 @@ fun BaixarTela(dependencias: Dependencias, navegacao: Navegacao, modifier: Modif
     val aviso by viewModel.aviso.collectAsStateWithLifecycle()
     val itens by viewModel.itens.collectAsStateWithLifecycle()
     val progresso by viewModel.progresso.collectAsStateWithLifecycle()
+    val pastaDoProximo by viewModel.pastaDoProximo.collectAsStateWithLifecycle()
+    val pastaPadrao by viewModel.pastaPadrao.collectAsStateWithLifecycle()
+    var trocandoPasta by rememberSaveable { mutableStateOf(false) }
 
     Column(
         modifier.fillMaxSize().padding(16.dp),
@@ -105,6 +120,22 @@ fun BaixarTela(dependencias: Dependencias, navegacao: Navegacao, modifier: Modif
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                stringResource(R.string.baixar_pasta, pastaDoProximo ?: pastaPadrao),
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.weight(1f),
+            )
+            TextButton(onClick = { trocandoPasta = true }) { Text(stringResource(R.string.baixar_trocar_pasta)) }
+        }
+        if (trocandoPasta) {
+            DialogoDePasta(
+                titulo = stringResource(R.string.baixar_pasta_so_deste),
+                pastaAtual = pastaDoProximo ?: pastaPadrao,
+                aoEscolher = { viewModel.pastaDoProximo.value = it },
+                aoDispensar = { trocandoPasta = false },
+            )
+        }
         Button(onClick = viewModel::baixar, modifier = Modifier.fillMaxWidth()) {
             Text(stringResource(R.string.baixar_botao))
         }

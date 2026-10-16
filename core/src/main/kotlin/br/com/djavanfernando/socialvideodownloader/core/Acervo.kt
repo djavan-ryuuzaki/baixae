@@ -23,4 +23,22 @@ class Acervo(
 
     suspend fun videosDa(bibliotecaId: String): List<Video> =
         repositorio.videos().filter { it.bibliotecaId == bibliotecaId }
+
+    /** Renomeia o Vídeo e o arquivo no celular; recusa nomes vazios ou já existentes na pasta. */
+    suspend fun renomear(videoId: String, novoNome: String): Video {
+        val video = repositorio.video(videoId) ?: throw VideoNaoEncontrado(videoId)
+        val nome = NomeDeVideo.sanitizar(novoNome)
+        if (nome.isEmpty()) throw NomeInvalido(novoNome)
+        if (nome == video.nome) return video
+        val nomeDoArquivo = "$nome.${Video.EXTENSAO}"
+        if (armazenamento.existeNaPasta(video.pasta, nomeDoArquivo)) throw NomeJaExiste(nome)
+        val caminho = armazenamento.renomear(video.caminhoDoArquivo, nomeDoArquivo)
+        return video.copy(nome = nome, caminhoDoArquivo = caminho).also { repositorio.salvarVideo(it) }
+    }
 }
+
+class VideoNaoEncontrado(id: String) : NoSuchElementException("Vídeo não encontrado: $id")
+
+class NomeInvalido(nome: String) : IllegalArgumentException("Nome inválido: $nome")
+
+class NomeJaExiste(val nome: String) : IllegalArgumentException("Já existe um arquivo chamado $nome")

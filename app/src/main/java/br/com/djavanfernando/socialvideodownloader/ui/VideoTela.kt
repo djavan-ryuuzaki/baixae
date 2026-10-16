@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -24,7 +25,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -33,6 +37,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import br.com.djavanfernando.socialvideodownloader.Dependencias
 import br.com.djavanfernando.socialvideodownloader.R
+import br.com.djavanfernando.socialvideodownloader.core.NomeInvalido
+import br.com.djavanfernando.socialvideodownloader.core.NomeJaExiste
 import br.com.djavanfernando.socialvideodownloader.core.Video
 import kotlinx.coroutines.flow.map
 
@@ -42,6 +48,7 @@ fun VideoTela(dependencias: Dependencias, videoId: String, aoVoltar: () -> Unit)
     val video by remember(videoId) {
         dependencias.repositorio.observarVideos().map { lista -> lista.firstOrNull { it.id == videoId } }
     }.collectAsStateWithLifecycle(null)
+    var renomeando by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -52,11 +59,38 @@ fun VideoTela(dependencias: Dependencias, videoId: String, aoVoltar: () -> Unit)
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.voltar))
                     }
                 },
+                actions = {
+                    IconButton(onClick = { renomeando = true }, enabled = video != null) {
+                        Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.video_renomear))
+                    }
+                },
             )
         },
     ) { margens ->
         val atual = video ?: return@Scaffold
         DetalhesDoVideo(atual, Modifier.padding(margens))
+        if (renomeando) {
+            val nomeJaExiste = stringResource(R.string.erro_nome_ja_existe)
+            val nomeInvalido = stringResource(R.string.erro_nome_invalido)
+            DialogoDeTexto(
+                titulo = stringResource(R.string.video_renomear),
+                valorInicial = atual.nome,
+                rotulo = stringResource(R.string.video_nome),
+                aoConfirmar = { nome ->
+                    try {
+                        dependencias.acervo.renomear(atual.id, nome)
+                        null
+                    } catch (_: NomeJaExiste) {
+                        nomeJaExiste
+                    } catch (_: NomeInvalido) {
+                        nomeInvalido
+                    } catch (erro: Exception) {
+                        erro.message ?: nomeInvalido
+                    }
+                },
+                aoDispensar = { renomeando = false },
+            )
+        }
     }
 }
 
