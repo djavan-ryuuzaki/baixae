@@ -3,7 +3,10 @@ package br.com.djavanfernando.socialvideodownloader.core.portas
 import br.com.djavanfernando.socialvideodownloader.core.LimiteDeQualidade
 import br.com.djavanfernando.socialvideodownloader.core.Post
 
-/** Componente que sabe obter vídeos de uma Plataforma. */
+/**
+ * Componente que sabe obter vídeos de uma Plataforma.
+ * Falhas conhecidas são lançadas como [br.com.djavanfernando.socialvideodownloader.core.FalhaDoExtrator].
+ */
 interface Extrator {
     suspend fun obterPost(link: String): Post
 
@@ -15,4 +18,9 @@ interface Extrator {
         limite: LimiteDeQualidade,
         aoProgredir: (Float) -> Unit,
     )
+
+    /** Atualiza os Extratores e devolve a nova versão. */
+    suspend fun atualizar(): String
+
+    suspend fun versao(): String
 }

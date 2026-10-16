@@ -1,6 +1,7 @@
 package br.com.djavanfernando.socialvideodownloader.core.portas
 
 import br.com.djavanfernando.socialvideodownloader.core.Biblioteca
+import br.com.djavanfernando.socialvideodownloader.core.ItemDaFila
 import br.com.djavanfernando.socialvideodownloader.core.Video
 import kotlinx.coroutines.flow.Flow
 
@@ -16,4 +17,10 @@ interface Repositorio {
     suspend fun removerBiblioteca(id: String)
     suspend fun bibliotecas(): List<Biblioteca>
     fun observarBibliotecas(): Flow<List<Biblioteca>>
+
+    suspend fun salvarItem(item: ItemDaFila)
+    suspend fun removerItem(id: String)
+    suspend fun itemDaFila(id: String): ItemDaFila?
+    suspend fun itensDaFila(): List<ItemDaFila>
+    fun observarFila(): Flow<List<ItemDaFila>>
 }

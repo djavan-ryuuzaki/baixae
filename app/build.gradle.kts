@@ -66,7 +66,11 @@ dependencies {
     ksp(libs.room.compiler)
 
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.work.runtime.ktx)
 
     implementation(libs.youtubedl.library)
     implementation(libs.youtubedl.ffmpeg)
+
+    testImplementation(libs.junit)
+    testImplementation(kotlin("test-junit"))
 }

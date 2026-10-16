@@ -1,6 +1,7 @@
 package br.com.djavanfernando.socialvideodownloader.adaptadores
 
 import android.content.Context
+import br.com.djavanfernando.socialvideodownloader.core.FalhaDoExtrator
 import br.com.djavanfernando.socialvideodownloader.core.LimiteDeQualidade
 import br.com.djavanfernando.socialvideodownloader.core.MidiaDoPost
 import br.com.djavanfernando.socialvideodownloader.core.Post
@@ -9,6 +10,7 @@ import br.com.djavanfernando.socialvideodownloader.core.portas.ArquivoTemporario
 import br.com.djavanfernando.socialvideodownloader.core.portas.Extrator
 import com.yausername.ffmpeg.FFmpeg
 import com.yausername.youtubedl_android.YoutubeDL
+import com.yausername.youtubedl_android.YoutubeDLException
 import com.yausername.youtubedl_android.YoutubeDLRequest
 import com.yausername.youtubedl_android.YoutubeDLResponse
 import kotlinx.coroutines.Dispatchers
@@ -108,9 +110,28 @@ class ExtratorYoutubeDl(private val context: Context) : Extrator {
             runInterruptible(Dispatchers.IO) {
                 YoutubeDL.getInstance().execute(pedido, idDoProcesso) { progresso, _, _ -> aoProgredir(progresso) }
             }
+        } catch (erro: YoutubeDLException) {
+            throw FalhaDoExtrator(ClassificadorDeFalhas.classificar(erro.message.orEmpty()), erro.message)
         } finally {
             vigia.cancel()
         }
+    }
+
+    override suspend fun atualizar(): String {
+        garantirInicializado()
+        try {
+            withContext(Dispatchers.IO) {
+                YoutubeDL.getInstance().updateYoutubeDL(context, YoutubeDL.UpdateChannel.STABLE)
+            }
+        } catch (erro: YoutubeDLException) {
+            throw FalhaDoExtrator(ClassificadorDeFalhas.classificar(erro.message.orEmpty()), erro.message)
+        }
+        return versao()
+    }
+
+    override suspend fun versao(): String {
+        garantirInicializado()
+        return withContext(Dispatchers.IO) { YoutubeDL.getInstance().version(context) }.orEmpty()
     }
 
     private fun midia(indice: Int, json: JSONObject): MidiaDoPost {

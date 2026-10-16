@@ -1,6 +1,7 @@
 package br.com.djavanfernando.socialvideodownloader.core.fakes
 
 import br.com.djavanfernando.socialvideodownloader.core.Biblioteca
+import br.com.djavanfernando.socialvideodownloader.core.ItemDaFila
 import br.com.djavanfernando.socialvideodownloader.core.Video
 import br.com.djavanfernando.socialvideodownloader.core.portas.Repositorio
 import kotlinx.coroutines.flow.Flow
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.update
 class RepositorioEmMemoria : Repositorio {
     private val videos = MutableStateFlow<Map<String, Video>>(emptyMap())
     private val bibliotecas = MutableStateFlow<Map<String, Biblioteca>>(emptyMap())
+    private val fila = MutableStateFlow<Map<String, ItemDaFila>>(emptyMap())
 
     override suspend fun salvarVideo(video: Video) = videos.update { it + (video.id to video) }
     override suspend fun removerVideo(id: String) = videos.update { it - id }
@@ -23,4 +25,10 @@ class RepositorioEmMemoria : Repositorio {
     override suspend fun removerBiblioteca(id: String) = bibliotecas.update { it - id }
     override suspend fun bibliotecas(): List<Biblioteca> = bibliotecas.value.values.toList()
     override fun observarBibliotecas(): Flow<List<Biblioteca>> = bibliotecas.map { it.values.toList() }
+
+    override suspend fun salvarItem(item: ItemDaFila) = fila.update { it + (item.id to item) }
+    override suspend fun removerItem(id: String) = fila.update { it - id }
+    override suspend fun itemDaFila(id: String): ItemDaFila? = fila.value[id]
+    override suspend fun itensDaFila(): List<ItemDaFila> = fila.value.values.toList()
+    override fun observarFila(): Flow<List<ItemDaFila>> = fila.map { it.values.toList() }
 }

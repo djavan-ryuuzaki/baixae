@@ -15,9 +15,13 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-            registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
-                .launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        val permissoes = buildList {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        if (permissoes.isNotEmpty() && savedInstanceState == null) {
+            registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {}
+                .launch(permissoes.toTypedArray())
         }
         val dependencias = (application as SocialVideoDownloaderApp).dependencias
         setContent {

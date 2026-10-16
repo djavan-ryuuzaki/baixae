@@ -3,14 +3,9 @@
     <string name="app_name">SocialVideoDownloader</string>
     <string name="baixar_link_rotulo">Link do Post</string>
     <string name="baixar_botao">Baixar</string>
-    <string name="baixar_baixando">Baixando…</string>
-    <string name="baixar_falhou">O Download falhou: %1$s</string>
-    <string name="baixar_concluido">Download concluído</string>
     <string name="plataforma_instavel">%1$s (instável)</string>
     <string name="plataformas_suportadas">Plataformas suportadas: %1$s</string>
     <string name="link_nao_suportado">Link não suportado. %1$s</string>
-    <string name="videos_titulo">Vídeos</string>
-    <string name="videos_vazio">Nenhum Vídeo baixado ainda.</string>
     <string name="aba_baixar">Baixar</string>
     <string name="aba_bibliotecas">Bibliotecas</string>
     <string name="aba_configuracoes">Configurações</string>
@@ -29,4 +24,29 @@
     <string name="video_data_do_download">Data do Download</string>
     <string name="video_link">Link do Post</string>
     <string name="nenhum_app_para_abrir">Nenhum app pode abrir isto.</string>
+    <string name="adicionado_a_fila">Adicionado à fila</string>
+    <string name="fila_titulo">Fila de Downloads</string>
+    <string name="fila_vazia">Nenhum Download na fila.</string>
+    <string name="fila_cancelar">Cancelar</string>
+    <string name="fila_remover">Remover da fila</string>
+    <string name="estado_pendente">Pendente</string>
+    <string name="estado_aguardando_rede">Aguardando rede</string>
+    <string name="estado_em_andamento">Baixando…</string>
+    <string name="estado_concluido">Concluído — toque para abrir</string>
+    <string name="estado_falhou">Falhou</string>
+    <string name="estado_cancelado">Cancelado</string>
+    <string name="canal_fila">Fila de Downloads</string>
+    <string name="canal_avisos">Avisos</string>
+    <string name="notificacao_fila_titulo">Baixando vídeos</string>
+    <string name="notificacao_fila_texto">%1$d em andamento, %2$d na fila</string>
+    <plurals name="notificacao_fila_em_andamento">
+        <item quantity="one">%d Download em andamento</item>
+        <item quantity="other">%d Downloads em andamento</item>
+    </plurals>
+    <plurals name="notificacao_concluidos">
+        <item quantity="one">%d Download concluído</item>
+        <item quantity="other">%d Downloads concluídos</item>
+    </plurals>
+    <string name="config_so_wifi">Baixar só no Wi-Fi</string>
+    <string name="config_so_wifi_descricao">Downloads esperam até haver uma rede Wi-Fi.</string>
 </resources>
