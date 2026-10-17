@@ -1,25 +1,54 @@
 package br.com.djavanfernando.socialvideodownloader.ui
 
-import androidx.compose.foundation.clickable
+import android.content.ClipboardManager
+import android.content.Context
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.ContentPaste
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Downloading
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.CloudDownload
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Folder
+import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material.icons.outlined.WifiOff
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -29,8 +58,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -192,87 +226,185 @@ fun BaixarTela(dependencias: Dependencias, navegacao: Navegacao, modifier: Modif
         )
     }
     ObservarAreaDeTransferencia(viewModel::areaDeTransferenciaMudou)
+    repetido?.let { (_, anterior) ->
+        DialogoDeLinkRepetido(
+            anterior = anterior,
+            aoAbrir = {
+                viewModel.dispensarRepetido()
+                navegacao.abrirVideo(anterior.video.id)
+            },
+            aoBaixarDeNovo = viewModel::baixarDeNovo,
+            aoDispensar = viewModel::dispensarRepetido,
+        )
+    }
+    if (trocandoPasta) {
+        DialogoDePasta(
+            titulo = stringResource(R.string.baixar_pasta_so_deste),
+            pastaAtual = pastaDoProximo ?: pastaPadrao,
+            aoEscolher = { viewModel.pastaDoProximo.value = it },
+            aoDispensar = { trocandoPasta = false },
+        )
+    }
 
-    Column(
-        modifier.fillMaxSize().padding(16.dp),
+    LazyColumn(
+        modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         sugestao?.let { copiado ->
-            SugestaoDeLinkCopiado(copiado, aoBaixar = viewModel::baixarSugestao, aoDispensar = viewModel::dispensarSugestao)
+            item(key = "sugestao") {
+                SugestaoDeLinkCopiado(copiado, aoBaixar = viewModel::baixarSugestao, aoDispensar = viewModel::dispensarSugestao)
+            }
         }
-        repetido?.let { (_, anterior) ->
-            DialogoDeLinkRepetido(
-                anterior = anterior,
-                aoAbrir = {
-                    viewModel.dispensarRepetido()
-                    navegacao.abrirVideo(anterior.video.id)
+        item(key = "pedido") {
+            CartaoDePedido(
+                link = link,
+                aoMudarLink = {
+                    viewModel.link.value = it
+                    viewModel.aviso.value = null
                 },
-                aoBaixarDeNovo = viewModel::baixarDeNovo,
-                aoDispensar = viewModel::dispensarRepetido,
+                pasta = pastaDoProximo ?: pastaPadrao,
+                aoTrocarPasta = { trocandoPasta = true },
+                aviso = aviso,
+                aoBaixar = viewModel::baixar,
             )
         }
-        OutlinedTextField(
-            value = link,
-            onValueChange = {
-                viewModel.link.value = it
-                viewModel.aviso.value = null
-            },
-            label = { Text(stringResource(R.string.baixar_link_rotulo)) },
-            supportingText = { Text(stringResource(R.string.plataformas_suportadas, plataformasSuportadas())) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        item(key = "titulo-da-fila") {
             Text(
-                stringResource(R.string.baixar_pasta, pastaDoProximo ?: pastaPadrao),
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.weight(1f),
-            )
-            TextButton(onClick = { trocandoPasta = true }) { Text(stringResource(R.string.baixar_trocar_pasta)) }
-        }
-        if (trocandoPasta) {
-            DialogoDePasta(
-                titulo = stringResource(R.string.baixar_pasta_so_deste),
-                pastaAtual = pastaDoProximo ?: pastaPadrao,
-                aoEscolher = { viewModel.pastaDoProximo.value = it },
-                aoDispensar = { trocandoPasta = false },
+                stringResource(R.string.fila_titulo),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(top = 8.dp, start = 4.dp),
             )
         }
-        Button(onClick = viewModel::baixar, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.baixar_botao))
-        }
-        when (aviso) {
-            Aviso.AdicionadoAFila -> Text(stringResource(R.string.adicionado_a_fila))
-            Aviso.LinkRecusado -> Text(
-                stringResource(
-                    R.string.link_nao_suportado,
-                    stringResource(R.string.plataformas_suportadas, plataformasSuportadas()),
-                ),
-                color = MaterialTheme.colorScheme.error,
-            )
-            null -> Unit
-        }
-        Text(stringResource(R.string.fila_titulo), style = MaterialTheme.typography.titleMedium)
-        if (itens.isEmpty()) Text(stringResource(R.string.fila_vazia))
-        LazyColumn {
-            items(itens, key = ItemDaFila::id) { item ->
-                ItemDaFilaLinha(
-                    item = item,
-                    progresso = progresso[item.id],
-                    aoAbrir = { item.videoIds.firstOrNull()?.let(navegacao::abrirVideo) },
-                    aoCancelar = { viewModel.cancelar(item.id) },
-                    aoRemover = { viewModel.remover(item.id) },
-                    atualizandoExtratores = item.id in atualizando,
-                    aoTentarDeNovo = { viewModel.tentarDeNovo(item.id) },
-                    aoAtualizarETentar = { viewModel.atualizarExtratoresETentar(item.id) },
+        if (itens.isEmpty()) {
+            item(key = "fila-vazia") {
+                EstadoVazio(
+                    Icons.Outlined.CloudDownload,
+                    stringResource(R.string.fila_vazia),
+                    dica = stringResource(R.string.fila_vazia_dica),
                 )
+            }
+        }
+        items(itens, key = ItemDaFila::id) { item ->
+            CartaoDaFila(
+                item = item,
+                progresso = progresso[item.id],
+                aoAbrir = { item.videoIds.firstOrNull()?.let(navegacao::abrirVideo) },
+                aoCancelar = { viewModel.cancelar(item.id) },
+                aoRemover = { viewModel.remover(item.id) },
+                atualizandoExtratores = item.id in atualizando,
+                aoTentarDeNovo = { viewModel.tentarDeNovo(item.id) },
+                aoAtualizarETentar = { viewModel.atualizarExtratoresETentar(item.id) },
+            )
+        }
+    }
+}
+
+/** Cartão de destaque com o campo do Link, a Pasta de destino e o botão Baixar. */
+@Composable
+private fun CartaoDePedido(
+    link: String,
+    aoMudarLink: (String) -> Unit,
+    pasta: String,
+    aoTrocarPasta: () -> Unit,
+    aviso: Aviso?,
+    aoBaixar: () -> Unit,
+) {
+    val context = LocalContext.current
+    val cores = MaterialTheme.colorScheme
+    Card(
+        shape = MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            Modifier
+                .background(Brush.linearGradient(listOf(cores.primaryContainer, cores.tertiaryContainer)))
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(
+                stringResource(R.string.baixar_titulo),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = cores.onPrimaryContainer,
+            )
+            Text(
+                stringResource(R.string.baixar_subtitulo),
+                style = MaterialTheme.typography.bodyMedium,
+                color = cores.onPrimaryContainer.copy(alpha = 0.8f),
+            )
+            OutlinedTextField(
+                value = link,
+                onValueChange = aoMudarLink,
+                placeholder = { Text(stringResource(R.string.baixar_link_rotulo)) },
+                leadingIcon = { Icon(Icons.Filled.Link, contentDescription = null) },
+                trailingIcon = {
+                    if (link.isEmpty()) {
+                        IconButton(onClick = { context.textoDaAreaDeTransferencia()?.let(aoMudarLink) }) {
+                            Icon(Icons.Filled.ContentPaste, contentDescription = stringResource(R.string.baixar_colar))
+                        }
+                    } else {
+                        IconButton(onClick = { aoMudarLink("") }) {
+                            Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.cancelar))
+                        }
+                    }
+                },
+                singleLine = true,
+                shape = MaterialTheme.shapes.medium,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedContainerColor = cores.surface,
+                    unfocusedContainerColor = cores.surface,
+                ),
+                modifier = Modifier.fillMaxWidth(),
+            )
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Plataforma.entries.forEach { SeloDePlataforma(it) }
+            }
+            AssistChip(
+                onClick = aoTrocarPasta,
+                label = { Text(stringResource(R.string.baixar_pasta, pasta), maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                leadingIcon = { Icon(Icons.Outlined.Folder, contentDescription = null, Modifier.size(AssistChipDefaults.IconSize)) },
+                trailingIcon = { Icon(Icons.Filled.Edit, contentDescription = stringResource(R.string.baixar_trocar_pasta), Modifier.size(AssistChipDefaults.IconSize)) },
+                colors = AssistChipDefaults.assistChipColors(containerColor = cores.surface.copy(alpha = 0.6f)),
+                border = null,
+            )
+            Button(
+                onClick = aoBaixar,
+                enabled = link.isNotBlank(),
+                contentPadding = PaddingValues(vertical = 14.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Icon(Icons.Filled.Download, contentDescription = null)
+                Spacer(Modifier.width(8.dp))
+                Text(stringResource(R.string.baixar_botao), style = MaterialTheme.typography.titleSmall)
+            }
+            when (aviso) {
+                Aviso.AdicionadoAFila -> Text(
+                    stringResource(R.string.adicionado_a_fila),
+                    color = cores.onPrimaryContainer,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Aviso.LinkRecusado -> Text(
+                    stringResource(
+                        R.string.link_nao_suportado,
+                        stringResource(R.string.plataformas_suportadas, plataformasSuportadas()),
+                    ),
+                    color = cores.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                null -> Unit
             }
         }
     }
 }
 
+private fun Context.textoDaAreaDeTransferencia(): String? =
+    getSystemService(ClipboardManager::class.java)?.primaryClip?.getItemAt(0)?.coerceToText(this)?.toString()
+
 @Composable
-private fun ItemDaFilaLinha(
+private fun CartaoDaFila(
     item: ItemDaFila,
     progresso: Float?,
     aoAbrir: () -> Unit,
@@ -282,60 +414,86 @@ private fun ItemDaFilaLinha(
     aoTentarDeNovo: () -> Unit,
     aoAtualizarETentar: () -> Unit,
 ) {
-    ListItem(
-        modifier = if (item.estado == EstadoNaFila.CONCLUIDO) Modifier.clickable(onClick = aoAbrir) else Modifier,
-        overlineContent = { Text(rotulo(item.plataforma)) },
-        headlineContent = { Text(item.titulo ?: item.link, maxLines = 2, overflow = TextOverflow.Ellipsis) },
-        supportingContent = {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    val concluido = item.estado == EstadoNaFila.CONCLUIDO
+    val falhou = item.estado == EstadoNaFila.FALHOU
+    ElevatedCard(
+        onClick = aoAbrir,
+        enabled = concluido,
+        colors = CardDefaults.elevatedCardColors(disabledContainerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Row(Modifier.padding(start = 16.dp, top = 12.dp, bottom = 12.dp, end = 4.dp), verticalAlignment = Alignment.Top) {
+            Box(
+                Modifier.size(44.dp).clip(CircleShape).background(item.plataforma.cor.copy(alpha = 0.15f)),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(iconeDoEstado(item.estado), contentDescription = null, tint = item.plataforma.cor)
+            }
+            Column(Modifier.weight(1f).padding(start = 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                SeloDePlataforma(item.plataforma)
+                Text(
+                    item.titulo ?: item.link,
+                    style = MaterialTheme.typography.titleSmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
                 Text(
                     descricaoDoEstado(item),
-                    color = if (item.estado == EstadoNaFila.FALHOU) {
-                        MaterialTheme.colorScheme.error
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (falhou) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                if (item.estado == EstadoNaFila.EM_ANDAMENTO) {
+                    val modificador = Modifier.fillMaxWidth().padding(top = 4.dp).height(6.dp).clip(CircleShape)
+                    if (progresso == null) {
+                        LinearProgressIndicator(modificador)
+                    } else {
+                        LinearProgressIndicator(progress = { progresso }, modifier = modificador)
+                    }
+                }
                 val falha = item.falha
-                if (item.estado == EstadoNaFila.FALHOU && falha != null) {
+                if (falhou && falha != null) {
                     when (AcaoAposFalha.para(falha)) {
-                        AcaoAposFalha.ATUALIZAR_EXTRATORES_E_TENTAR -> TextButton(
+                        AcaoAposFalha.ATUALIZAR_EXTRATORES_E_TENTAR -> FilledTonalButton(
                             onClick = aoAtualizarETentar,
                             enabled = !atualizandoExtratores,
                         ) {
+                            Icon(Icons.Filled.Refresh, contentDescription = null, Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
                             Text(
                                 stringResource(
                                     if (atualizandoExtratores) R.string.extratores_atualizando else R.string.falha_atualizar_e_tentar,
                                 ),
                             )
                         }
-                        AcaoAposFalha.TENTAR_DE_NOVO -> TextButton(onClick = aoTentarDeNovo) {
+                        AcaoAposFalha.TENTAR_DE_NOVO -> FilledTonalButton(onClick = aoTentarDeNovo) {
+                            Icon(Icons.Filled.Refresh, contentDescription = null, Modifier.size(18.dp))
+                            Spacer(Modifier.width(6.dp))
                             Text(stringResource(R.string.falha_tentar_de_novo))
                         }
                         AcaoAposFalha.NENHUMA -> Unit
                     }
                 }
-                if (item.estado == EstadoNaFila.EM_ANDAMENTO) {
-                    if (progresso == null) {
-                        LinearProgressIndicator(Modifier.fillMaxWidth())
-                    } else {
-                        LinearProgressIndicator(progress = { progresso }, modifier = Modifier.fillMaxWidth())
-                    }
-                }
             }
-        },
-        trailingContent = {
             if (item.estado.encerrado) {
                 IconButton(onClick = aoRemover) {
-                    Icon(Icons.Filled.Delete, contentDescription = stringResource(R.string.fila_remover))
+                    Icon(Icons.Outlined.Delete, contentDescription = stringResource(R.string.fila_remover))
                 }
             } else {
                 IconButton(onClick = aoCancelar) {
                     Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.fila_cancelar))
                 }
             }
-        },
-    )
+        }
+    }
+}
+
+private fun iconeDoEstado(estado: EstadoNaFila): ImageVector = when (estado) {
+    EstadoNaFila.PENDENTE -> Icons.Outlined.Schedule
+    EstadoNaFila.AGUARDANDO_REDE -> Icons.Outlined.WifiOff
+    EstadoNaFila.EM_ANDAMENTO -> Icons.Filled.Downloading
+    EstadoNaFila.CONCLUIDO -> Icons.Filled.CheckCircle
+    EstadoNaFila.FALHOU -> Icons.Filled.ErrorOutline
+    EstadoNaFila.CANCELADO -> Icons.Outlined.Block
 }
 
 @Composable

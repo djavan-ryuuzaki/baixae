@@ -7,8 +7,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -19,7 +25,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.DriveFileMove
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.SearchOff
+import androidx.compose.material.icons.outlined.VideoLibrary
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Search
@@ -30,7 +39,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -40,7 +50,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -142,6 +156,7 @@ fun BibliotecaTela(
     Column(modifier.fillMaxSize()) {
         if (selecionados.isEmpty()) {
             TopAppBar(
+                windowInsets = WindowInsets(0),
                 title = { Text(biblioteca?.let { nomeDaBiblioteca(it) }.orEmpty()) },
                 navigationIcon = {
                     IconButton(onClick = aoVoltar) {
@@ -161,6 +176,7 @@ fun BibliotecaTela(
             )
         } else {
             TopAppBar(
+                windowInsets = WindowInsets(0),
                 title = { Text(pluralStringResource(R.plurals.selecionados, selecionados.size, selecionados.size)) },
                 navigationIcon = {
                     IconButton(onClick = viewModel::limparSelecao) {
@@ -174,17 +190,31 @@ fun BibliotecaTela(
                 },
             )
         }
-        OutlinedTextField(
+        TextField(
             value = busca,
             onValueChange = { viewModel.busca.value = it },
-            placeholder = { Text(stringResource(R.string.busca_dica)) },
+            placeholder = { Text(stringResource(R.string.busca_dica), maxLines = 1, overflow = TextOverflow.Ellipsis) },
             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
+            trailingIcon = {
+                if (busca.isNotEmpty()) {
+                    IconButton(onClick = { viewModel.busca.value = "" }) {
+                        Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.cancelar))
+                    }
+                }
+            },
             singleLine = true,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+            shape = CircleShape,
+            colors = TextFieldDefaults.colors(
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            ),
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
         )
         if (plataformas.size > 1 || filtro != null) {
             Row(
-                Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp),
+                Modifier.horizontalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 FilterChip(selected = filtro == null, onClick = { viewModel.filtro.value = null }, label = { Text(stringResource(R.string.filtro_todas)) })
@@ -193,29 +223,34 @@ fun BibliotecaTela(
                         selected = filtro == plataforma,
                         onClick = { viewModel.filtro.value = plataforma },
                         label = { Text(plataforma.nome) },
+                        leadingIcon = { Box(Modifier.size(8.dp).clip(CircleShape).background(plataforma.cor)) },
                     )
                 }
             }
         }
         if (videos.isEmpty()) {
-            Text(
+            EstadoVazio(
+                if (busca.isBlank()) Icons.Outlined.VideoLibrary else Icons.Outlined.SearchOff,
                 stringResource(if (busca.isBlank()) R.string.biblioteca_vazia else R.string.busca_vazia),
-                Modifier.padding(16.dp),
             )
         }
-        LazyColumn {
+        LazyColumn(
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             items(videos, key = Video::id) { video ->
                 val selecionado = video.id in selecionados
                 ItemDeVideo(
                     video,
-                    Modifier
+                    selecionado = selecionado,
+                    modifier = Modifier
+                        .clip(MaterialTheme.shapes.medium)
                         .combinedClickable(
                             onClick = {
                                 if (selecionados.isEmpty()) aoAbrirVideo(video.id) else viewModel.alternarSelecao(video.id)
                             },
                             onLongClick = { viewModel.alternarSelecao(video.id) },
-                        )
-                        .then(if (selecionado) Modifier.background(MaterialTheme.colorScheme.secondaryContainer) else Modifier),
+                        ),
                 ) {
                     if (video.arquivoAusente) {
                         Text(stringResource(R.string.arquivo_ausente), color = MaterialTheme.colorScheme.error)
@@ -286,18 +321,61 @@ fun BibliotecaTela(
 fun nomeDaBiblioteca(biblioteca: Biblioteca): String = biblioteca.plataforma?.let { rotulo(it) } ?: biblioteca.nome
 
 @Composable
-fun ItemDeVideo(video: Video, modifier: Modifier = Modifier, marcadores: @Composable () -> Unit = {}) {
-    ListItem(
-        modifier = modifier,
-        leadingContent = { Miniatura(video.caminhoDoArquivo, Modifier.size(width = 96.dp, height = 54.dp)) },
-        headlineContent = { Text(video.nome, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-        supportingContent = {
-            Column {
-                Text("${video.plataforma.nome} · ${video.autor}", maxLines = 1, overflow = TextOverflow.Ellipsis)
-                if (video.legenda.isNotBlank()) Text(video.legenda, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Text("${formatarDuracao(video.duracaoEmSegundos)} · ${formatarData(video.dataDoDownload)}")
-                marcadores()
+fun ItemDeVideo(
+    video: Video,
+    modifier: Modifier = Modifier,
+    selecionado: Boolean = false,
+    marcadores: @Composable () -> Unit = {},
+) {
+    val fundo = if (selecionado) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerLow
+    Row(
+        modifier.fillMaxWidth().background(fundo).padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(Modifier.width(128.dp).aspectRatio(16f / 9f).clip(MaterialTheme.shapes.small)) {
+            Miniatura(video.caminhoDoArquivo, Modifier.matchParentSize())
+            SeloDeDuracao(video.duracaoEmSegundos, Modifier.align(Alignment.BottomEnd).padding(4.dp))
+            if (selecionado) {
+                Box(
+                    Modifier.matchParentSize().background(MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(Icons.Filled.CheckCircle, contentDescription = null, tint = Color.White)
+                }
             }
-        },
-    )
+        }
+        Column(Modifier.weight(1f).padding(start = 12.dp), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+            Text(
+                video.nome,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                SeloDePlataforma(video.plataforma)
+                Text(
+                    video.autor,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            if (video.legenda.isNotBlank()) {
+                Text(
+                    video.legenda,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Text(
+                formatarData(video.dataDoDownload),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            marcadores()
+        }
+    }
 }

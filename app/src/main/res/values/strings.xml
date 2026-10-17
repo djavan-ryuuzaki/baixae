@@ -17,8 +17,6 @@
     </plurals>
     <string name="video_reproduzir">Reproduzir</string>
     <string name="video_abrir_original">Abrir original</string>
-    <string name="video_plataforma">Plataforma</string>
-    <string name="video_autor">Autor</string>
     <string name="video_legenda">Legenda / título</string>
     <string name="video_duracao">Duração</string>
     <string name="video_data_do_download">Data do Download</string>
@@ -121,4 +119,12 @@
     <string name="versao_do_app">Versão do app: %1$s</string>
     <string name="verificar_atualizacoes">Verificar atualizações agora</string>
     <string name="versao_mais_recente">Nenhuma versão nova encontrada.</string>
+    <string name="baixar_titulo">Baixar vídeo</string>
+    <string name="baixar_subtitulo">Cole o Link de um Post para salvar o vídeo no celular.</string>
+    <string name="baixar_colar">Colar</string>
+    <string name="fila_vazia_dica">Os Downloads aparecem aqui enquanto são baixados.</string>
+    <string name="config_secao_downloads">Downloads</string>
+    <string name="config_secao_compartilhar">Compartilhamento</string>
+    <string name="config_secao_sobre">Sobre</string>
+    <string name="video_detalhes">Detalhes</string>
 </resources>
