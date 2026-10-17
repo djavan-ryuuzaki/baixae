@@ -21,10 +21,10 @@ keyPassword=...
 
 Sem esse arquivo, `assembleRelease` gera APKs **não assinados**, que não instalam.
 
-Preencha também, em `gradle.properties`, o repositório usado pelo aviso de nova versão:
+O aviso de nova versão consulta o repositório definido em `gradle.properties`:
 
 ```properties
-repositorioGithub=dono/Baixae
+repositorioGithub=djavan-ryuuzaki/baixae
 ```
 
 ## A cada versão

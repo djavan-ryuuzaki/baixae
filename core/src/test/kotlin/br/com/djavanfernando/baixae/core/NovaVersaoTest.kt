@@ -11,7 +11,7 @@ import kotlin.test.assertTrue
 class NovaVersaoTest {
     private val cenario = Cenario()
     private val atualizacoes = cenario.atualizacoesDoApp
-    private val release = "https://github.com/dono/Baixae/releases/tag/v0.2.0"
+    private val release = "https://github.com/djavan-ryuuzaki/baixae/releases/tag/v0.2.0"
 
     @Test
     fun `compara versoes numericamente, ignorando o prefixo v`() {
