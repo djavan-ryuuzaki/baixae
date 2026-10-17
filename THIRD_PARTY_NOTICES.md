@@ -1,6 +1,6 @@
 # Avisos de terceiros
 
-O SocialVideoDownloader é distribuído sob a [GPL-3.0](LICENSE) e inclui os componentes abaixo nos APKs.
+O Baixaê é distribuído sob a [GPL-3.0](LICENSE) e inclui os componentes abaixo nos APKs.
 
 | Componente | Uso no app | Licença | Fonte |
 | --- | --- | --- | --- |

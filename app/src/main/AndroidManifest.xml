@@ -12,13 +12,13 @@
         android:maxSdkVersion="28" />
 
     <application
-        android:name=".SocialVideoDownloaderApp"
+        android:name=".BaixaeApp"
         android:allowBackup="true"
         android:extractNativeLibs="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.SocialVideoDownloader">
+        android:theme="@style/Theme.Baixae">
 
         <activity
             android:name=".MainActivity"
@@ -38,7 +38,7 @@
             android:label="@string/compartilhar_rotulo"
             android:noHistory="true"
             android:taskAffinity=""
-            android:theme="@style/Theme.SocialVideoDownloader.Invisivel">
+            android:theme="@style/Theme.Baixae.Invisivel">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />

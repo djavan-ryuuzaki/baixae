@@ -7,15 +7,15 @@ Cada versão é publicada como três APKs assinados, um por ABI (arm64-v8a, arme
 Todas as versões precisam ser assinadas com **a mesma chave**; sem ela, quem já instalou não consegue atualizar. Guarde o arquivo `.jks` e as senhas fora do repositório (e com backup).
 
 ```bash
-keytool -genkeypair -v -keystore socialvideodownloader.jks -alias socialvideodownloader -keyalg RSA -keysize 4096 -validity 36500
+keytool -genkeypair -v -keystore baixae.jks -alias baixae -keyalg RSA -keysize 4096 -validity 36500
 ```
 
 Crie `keystore.properties` na raiz do projeto (já está no `.gitignore`):
 
 ```properties
-storeFile=C:/caminho/para/socialvideodownloader.jks
+storeFile=C:/caminho/para/baixae.jks
 storePassword=...
-keyAlias=socialvideodownloader
+keyAlias=baixae
 keyPassword=...
 ```
 
@@ -24,7 +24,7 @@ Sem esse arquivo, `assembleRelease` gera APKs **não assinados**, que não insta
 Preencha também, em `gradle.properties`, o repositório usado pelo aviso de nova versão:
 
 ```properties
-repositorioGithub=dono/SocialVideoDownloader
+repositorioGithub=dono/Baixae
 ```
 
 ## A cada versão
@@ -43,12 +43,12 @@ repositorioGithub=dono/SocialVideoDownloader
    ```
 
 4. Instale o APK numa versão anterior já instalada (para confirmar que atualiza sem perder dados) e faça um Download de teste de cada Plataforma.
-5. Renomeie os APKs para `SocialVideoDownloader-<versão>-<abi>.apk`, crie a tag e a release:
+5. Renomeie os APKs para `Baixae-<versão>-<abi>.apk`, crie a tag e a release:
 
    ```bash
    git tag v0.2.0
    git push origin v0.2.0
-   gh release create v0.2.0 --title "v0.2.0" --notes-file notas.md SocialVideoDownloader-0.2.0-arm64-v8a.apk SocialVideoDownloader-0.2.0-armeabi-v7a.apk SocialVideoDownloader-0.2.0-x86_64.apk
+   gh release create v0.2.0 --title "v0.2.0" --notes-file notas.md Baixae-0.2.0-arm64-v8a.apk Baixae-0.2.0-armeabi-v7a.apk Baixae-0.2.0-x86_64.apk
    ```
 
    O nome da tag precisa ser a `versionName` (com ou sem `v`): é ela que o app compara para avisar sobre a nova versão.

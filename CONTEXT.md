@@ -1,4 +1,4 @@
-# SocialVideoDownloader
+# Baixaê
 
 App Android para baixar vídeos públicos de Plataformas sociais a partir de um Link e organizá-los em Bibliotecas dentro do app.
 
@@ -70,4 +70,4 @@ _Avoid_: vídeo mudo
 Envio de um Vídeo do app para outro app. Quando a Marca d'água está ligada, envia uma cópia marcada, nunca o arquivo da Biblioteca.
 
 **Marca d'água**:
-Texto visível "Baixado com SocialVideoDownloader" num canto do vídeo, aplicado apenas no Compartilhamento. Desligada por padrão.
+Texto visível "Baixado com Baixaê" num canto do vídeo, aplicado apenas no Compartilhamento. Desligada por padrão.

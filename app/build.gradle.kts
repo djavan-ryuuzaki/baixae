@@ -17,11 +17,11 @@ val assinatura = rootProject.file("keystore.properties").takeIf { it.exists() }?
 val abis = listOf("armeabi-v7a", "arm64-v8a", "x86_64")
 
 android {
-    namespace = "br.com.djavanfernando.socialvideodownloader"
+    namespace = "br.com.djavanfernando.baixae"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "br.com.djavanfernando.socialvideodownloader"
+        applicationId = "br.com.djavanfernando.baixae"
         minSdk = 26
         targetSdk = 37
         versionCode = 1

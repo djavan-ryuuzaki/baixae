@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">SocialVideoDownloader</string>
+    <string name="app_name">Baixaê</string>
     <string name="baixar_link_rotulo">Link do Post</string>
     <string name="baixar_botao">Baixar</string>
     <string name="plataforma_instavel">%1$s (instável)</string>
@@ -57,7 +57,7 @@
     <string name="erro_nome_invalido">Digite um nome válido.</string>
     <string name="config_pasta_padrao">Pasta de destino padrão</string>
     <string name="pasta_rotulo">Pasta</string>
-    <string name="pasta_ajuda">Começa com %1$s. Ex.: Movies/SocialVideoDownloader</string>
+    <string name="pasta_ajuda">Começa com %1$s. Ex.: Movies/Baixaê</string>
     <string name="erro_pasta_invalida">A pasta precisa começar com %1$s.</string>
     <string name="baixar_pasta">Salvar em: %1$s</string>
     <string name="baixar_trocar_pasta">Trocar</string>
@@ -92,7 +92,7 @@
     <string name="busca_vazia">Nenhum Vídeo encontrado.</string>
     <string name="video_compartilhar">Compartilhar</string>
     <string name="config_marca_dagua">Marca d’água ao compartilhar</string>
-    <string name="config_marca_dagua_descricao">Envia uma cópia com “Baixado com SocialVideoDownloader” no canto. O Vídeo da Biblioteca não muda.</string>
+    <string name="config_marca_dagua_descricao">Envia uma cópia com “Baixado com Baixaê” no canto. O Vídeo da Biblioteca não muda.</string>
     <string name="marca_dagua_gerando">Gerando cópia com Marca d’água…</string>
     <string name="marca_dagua_falhou">Não foi possível gerar a cópia com Marca d’água.</string>
     <string name="sem_som_criar">Criar versão sem som</string>

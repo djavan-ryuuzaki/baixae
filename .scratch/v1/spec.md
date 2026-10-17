@@ -1,4 +1,4 @@
-# SocialVideoDownloader v1
+# Baixaê v1
 
 **Status:** ready-for-agent
 
@@ -61,7 +61,7 @@ O vocabulário segue `CONTEXT.md`. Decisões estruturais: ADR-0001 (distribuiç�
 31. Como usuário, quero que nomes repetidos recebam sufixo (`_2`, `_3`), para que Vídeos do mesmo autor no mesmo dia não se sobrescrevam.
 32. Como usuário, quero renomear um Vídeo e ter o arquivo no celular renomeado junto, para que o nome seja o mesmo dentro e fora do app.
 33. Como usuário, quero ser impedido de renomear para um nome que já existe na pasta, para não perder arquivos.
-34. Como usuário, quero definir a Pasta de destino padrão em Configurações (padrão Movies/SocialVideoDownloader), para escolher onde os vídeos ficam.
+34. Como usuário, quero definir a Pasta de destino padrão em Configurações (padrão Movies/Baixaê), para escolher onde os vídeos ficam.
 35. Como usuário, quero trocar a Pasta de destino num Download específico iniciado pela aba Baixar, para casos excepcionais.
 36. Como usuário, quero ver de cada Vídeo a Plataforma, autor, legenda/título do Post, data do Download, duração e miniatura, para reconhecê-lo.
 37. Como usuário, quero um botão "Abrir original" que abre o Link do Post, para voltar à fonte.
@@ -87,7 +87,7 @@ O vocabulário segue `CONTEXT.md`. Decisões estruturais: ADR-0001 (distribuiç�
 
 52. Como usuário, quero compartilhar um Vídeo pelo menu Compartilhar padrão do Android, para enviá-lo a qualquer app (WhatsApp, Instagram etc.).
 53. Como usuário, quero ligar ou desligar a Marca d'água em Configurações (desligada por padrão), para divulgar o app quando quiser.
-54. Como usuário, quero que a Marca d'água ("Baixado com SocialVideoDownloader", canto inferior direito, semitransparente) seja aplicada só na cópia compartilhada, para que o Vídeo da Biblioteca continue limpo.
+54. Como usuário, quero que a Marca d'água ("Baixado com Baixaê", canto inferior direito, semitransparente) seja aplicada só na cópia compartilhada, para que o Vídeo da Biblioteca continue limpo.
 55. Como usuário, quero ver o progresso enquanto a cópia com Marca d'água é gerada, já que isso pode levar algum tempo.
 
 ### App
@@ -117,7 +117,7 @@ O vocabulário segue `CONTEXT.md`. Decisões estruturais: ADR-0001 (distribuiç�
   - Biblioteca: id, nome, tipo (padrão com Plataforma associada | personalizada). Bibliotecas padrão criadas na primeira execução, uma por Plataforma; imutáveis.
   - Apagar Biblioteca personalizada move seus Vídeos para a Biblioteca padrão da Plataforma de origem de cada um.
 - **Nomes de arquivo:** padrão `{plataforma}_{autor}_{data ISO}`; colisões na Pasta de destino recebem sufixo `_2`, `_3`…; renomear para nome existente é recusado; caracteres inválidos em nomes de arquivo são sanitizados.
-- **Pasta de destino:** padrão Movies/SocialVideoDownloader via armazenamento compartilhado do Android; configurável em Configurações; Downloads do menu Compartilhar sempre usam a padrão.
+- **Pasta de destino:** padrão Movies/Baixaê via armazenamento compartilhado do Android; configurável em Configurações; Downloads do menu Compartilhar sempre usam a padrão.
 - **Link repetido:** detectado pelo Link do Post já existir em algum Vídeo.
 - **Área de transferência:** lida apenas quando o app está em primeiro plano, e só para sugerir; nunca preenche nem baixa sem toque do usuário.
 - **Marca d'água:** texto fixo no canto inferior direito, semitransparente, gerado numa cópia temporária usada só no Compartilhamento; o arquivo da Biblioteca nunca é alterado.

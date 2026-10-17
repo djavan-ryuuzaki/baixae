@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.SocialVideoDownloader" parent="android:Theme.Material.Light.NoActionBar" />
-    <style name="Theme.SocialVideoDownloader.Invisivel" parent="android:Theme.Translucent.NoTitleBar">
+    <style name="Theme.Baixae" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.Baixae.Invisivel" parent="android:Theme.Translucent.NoTitleBar">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowAnimationStyle">@null</item>
     </style>
